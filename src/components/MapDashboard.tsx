@@ -124,8 +124,8 @@ export function MapDashboard() {
                 <h2 className="font-semibold">Locations</h2>
                 <span className="text-sm text-muted-foreground">{filteredLocations.length} places</span>
               </div>
-              <ScrollArea className="w-full">
-                <div className="flex gap-2 pb-2">
+              <div className="w-full overflow-x-auto pb-2">
+                <div className="flex gap-2">
                   {locationTypeFilters.map((option) => (
                     <button
                       key={option.value}
@@ -140,7 +140,7 @@ export function MapDashboard() {
                     </button>
                   ))}
                 </div>
-              </ScrollArea>
+              </div>
             </div>
 
             {/* Location List */}
@@ -184,7 +184,7 @@ export function MapDashboard() {
               <div className="w-12 h-1 bg-border rounded-full mx-auto mb-4" />
 
               {/* Filter */}
-              <ScrollArea className="w-full mb-4">
+              <div className="w-full overflow-x-auto mb-4 pb-2">
                 <div className="flex gap-2">
                   {locationTypeFilters.map((option) => (
                     <button
@@ -200,7 +200,7 @@ export function MapDashboard() {
                     </button>
                   ))}
                 </div>
-              </ScrollArea>
+              </div>
 
               {/* Location List */}
               <ScrollArea className="h-[50vh]">

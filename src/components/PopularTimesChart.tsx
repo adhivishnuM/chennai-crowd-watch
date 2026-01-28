@@ -36,7 +36,7 @@ export function PopularTimesChart({ data, compact = false }: PopularTimesChartPr
     .filter(item => item.originalHour >= 6 && item.originalHour <= 23);
 
   const getBarColor = (value: number, isCurrent: boolean) => {
-    if (isCurrent) return 'hsl(var(--primary))';
+    // REMOVED: if (isCurrent) return 'hsl(var(--primary))'; // Don't make it black
     if (value < 40) return 'hsl(var(--crowd-low))';
     if (value < 70) return 'hsl(var(--crowd-medium))';
     return 'hsl(var(--crowd-high))';
@@ -69,6 +69,8 @@ export function PopularTimesChart({ data, compact = false }: PopularTimesChartPr
                   key={`cell-${index}`}
                   fill={getBarColor(entry.value, entry.isCurrent)}
                   opacity={entry.isCurrent ? 1 : 0.6}
+                  stroke={entry.isCurrent ? 'hsl(var(--primary))' : 'none'}
+                  strokeWidth={entry.isCurrent ? 1 : 0}
                 />
               ))}
             </Bar>
@@ -125,7 +127,10 @@ export function PopularTimesChart({ data, compact = false }: PopularTimesChartPr
               <Cell
                 key={`cell-${index}`}
                 fill={getBarColor(entry.value, entry.isCurrent)}
-                opacity={entry.isCurrent ? 1 : 0.7}
+                // Highlight current time with full opacity and a distinct border/glow effect if needed
+                opacity={entry.isCurrent ? 1 : 0.4}
+                stroke={entry.isCurrent ? 'hsl(var(--foreground))' : 'none'}
+                strokeWidth={entry.isCurrent ? 2 : 0}
               />
             ))}
           </Bar>
@@ -134,16 +139,20 @@ export function PopularTimesChart({ data, compact = false }: PopularTimesChartPr
 
       <div className="flex items-center justify-center gap-4 mt-2 text-xs">
         <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-crowd-low" />
+          <div className="w-2.5 h-2.5 rounded-sm bg-crowd-low opacity-60" />
           <span className="text-muted-foreground">Quiet</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-crowd-medium" />
+          <div className="w-2.5 h-2.5 rounded-sm bg-crowd-medium opacity-60" />
           <span className="text-muted-foreground">Moderate</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-crowd-high" />
+          <div className="w-2.5 h-2.5 rounded-sm bg-crowd-high opacity-60" />
           <span className="text-muted-foreground">Busy</span>
+        </div>
+        <div className="flex items-center gap-1.5">
+          <div className="w-2.5 h-2.5 rounded-sm border-2 border-foreground bg-transparent" />
+          <span className="text-muted-foreground">Now</span>
         </div>
       </div>
     </motion.div>

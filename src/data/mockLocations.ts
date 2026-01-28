@@ -87,26 +87,49 @@ function getTimeMultiplier(hour: number, type: Location['type'], locationId: str
   const baseValue = pattern[hour] || 0;
 
   const idNum = parseInt(locationId) || locationId.charCodeAt(0);
-  const rand = seededRandom(idNum * 9973 + hour * 7919);
+  // Add day of week sensitivity
+  const dayOfWeek = new Date().getDay(); // 0 = Sun, 6 = Sat
+  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+  // Seed varies by day to make sure patterns change daily
+  const seed = idNum * 9973 + hour * 7919 + dayOfWeek * 1337;
+  const rand = seededRandom(seed);
+
+  // Malls/Parks are busier on weekends
+  let dayMultiplier = 1.0;
+  if (isWeekend) {
+    if (type === 'mall' || type === 'park' || type === 'foodcourt') dayMultiplier = 1.4;
+    else if (type === 'transit') dayMultiplier = 0.7; // Less work commute
+  } else {
+    // Weekday rush hours for transit/toll
+    if ((type === 'transit' || type === 'toll') && ((hour >= 7 && hour <= 10) || (hour >= 17 && hour <= 20))) {
+      dayMultiplier = 1.3;
+    }
+  }
 
   const amplitudeVariation = 0.7 + rand() * 0.5;
-  const noise = (rand() - 0.5) * 0.15;
+  const noise = (rand() - 0.5) * 0.25; // Increase noise
 
-  const finalValue = baseValue * amplitudeVariation + noise;
-  return Math.max(0.02, Math.min(0.95, finalValue));
+  const finalValue = (baseValue * dayMultiplier * amplitudeVariation) + noise;
+  return Math.max(0.00, Math.min(1.0, finalValue)); // Ensure 0-1 range
 }
 
-// Generate crowd count based on time
+// Generate crowd count based on time with dynamic fluctuations
 function generateCrowdCount(capacity: number, type: Location['type'], locationId: string): number {
   const now = new Date();
   const hour = now.getHours();
   const timeMultiplier = getTimeMultiplier(hour, type, locationId);
 
-  const minuteVariation = Math.sin(now.getMinutes() / 10) * 0.03;
-  const idNum = parseInt(locationId) || 1;
-  const locationVariation = 0.6 + ((idNum * 17) % 50) / 100;
+  // Dynamic real-time fluctuation (simulating live data)
+  const minuteVariation = Math.sin(now.getMinutes() / 15 * Math.PI) * 0.05; // Slower wave
+  const secondNoise = (Math.random() - 0.5) * 0.02;
 
-  return Math.floor(capacity * (timeMultiplier + minuteVariation) * locationVariation);
+  const idNum = parseInt(locationId) || 1;
+  // Unique characteristic per location (some are consistently more popular than others of same type)
+  const popularityBias = 0.8 + ((idNum * 37) % 40) / 100; // 0.8 to 1.2
+
+  let count = Math.floor(capacity * (timeMultiplier + minuteVariation + secondNoise) * popularityBias);
+  return Math.max(0, Math.min(capacity, count));
 }
 
 // Get crowd level from percentage

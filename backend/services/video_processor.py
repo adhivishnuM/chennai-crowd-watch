@@ -114,6 +114,18 @@ class VideoProcessor:
             self.active_processings[file_id]["preview_frame"] = None
             self.active_processings[file_id]["status"] = "completed"
             self.active_processings[file_id]["progress"] = 100
+
+            # SAVE RESULTS TO JSON
+            results = self._generate_results_dict(file_id)
+            json_path = os.path.join(self.upload_dir, f"{file_id}.json")
+            import json
+            with open(json_path, "w") as f:
+                json.dump(results, f)
+            
+            # DELETE VIDEO FILE TO SAVE SPACE
+            if os.path.exists(file_path):
+                os.remove(file_path)
+                print(f"Deleted video file: {file_path}")
             
         except Exception as e:
             print(f"Error processing video {file_id}: {e}")
@@ -123,17 +135,35 @@ class VideoProcessor:
             cap.release()
             
     def get_status(self, file_id):
+        # 1. Check active memory
         status = self.active_processings.get(file_id)
         if status:
-            # Return a clean copy without the frame data (too large for JSON)
             return {k: v for k, v in status.items() if k != "latest_frame"}
+        
+        # 2. Check saved JSON
+        json_path = os.path.join(self.upload_dir, f"{file_id}.json")
+        if os.path.exists(json_path):
+            try:
+                import json
+                with open(json_path, "r") as f:
+                    data = json.load(f)
+                return {
+                    "status": "completed",
+                    "progress": 100,
+                    "avg_count": data["statistics"]["average_count"],
+                    "peak_count": data["statistics"]["peak_count"],
+                    "min_count": data["statistics"]["minimum_count"],
+                    "counts": data["counts_timeline"],
+                    "timeline_per_second": data.get("timeline_per_second", []) # Assuming added to _generate_results_dict
+                }
+            except:
+                pass
+
         return None
     
-    def get_results_json(self, file_id):
-        """Get detailed results for JSON export."""
+    def _generate_results_dict(self, file_id):
         status = self.active_processings.get(file_id)
-        if not status or status.get("status") != "completed":
-            return None
+        if not status: return None
         
         counts = status.get("counts", [])
         return {
@@ -150,8 +180,25 @@ class VideoProcessor:
                 "minimum_count": status.get("min_count", 0),
                 "data_points": len(counts)
             },
-            "counts_timeline": counts
+            "counts_timeline": counts,
+            "timeline_per_second": status.get("timeline_per_second", [])
         }
+
+    def get_results_json(self, file_id):
+        """Get detailed results for JSON export."""
+        # 1. Try memory
+        res = self._generate_results_dict(file_id)
+        if res and res["status"] == "completed":
+            return res
+            
+        # 2. Try disk
+        json_path = os.path.join(self.upload_dir, f"{file_id}.json")
+        if os.path.exists(json_path):
+            import json
+            with open(json_path, "r") as f:
+                return json.load(f)
+
+        return None
 
 # Initialize with path relative to project root, not backend directory
 _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))

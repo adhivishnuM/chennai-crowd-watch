@@ -1,73 +1,109 @@
-# Welcome to your Lovable project
+# Chennai Crowd Watch (CROWDEX)
 
-## Project info
+**Chennai Crowd Watch** is a cutting-edge Real-Time Public Crowd Awareness System designed for Chennai, India. It empowers users with live crowd data to make informed decisions before visiting popular public locations.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+> **Tagline:** *"Know Before You Go"*
 
-## How can I edit this code?
+## 🚀 Project Overview
 
-There are several ways of editing your application.
+This application serves two primary user groups:
+1.  **Public Users:** Can view real-time crowd status, "best time to visit" recommendations, and popular time trends for malls, beaches, parks, and transit hubs.
+2.  **Administrators:** Have access to a powerful dashboard for managing camera feeds, uploading videos for analysis, and viewing detailed analytics.
 
-**Use Lovable**
+### Key Features
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+*   **Real-Time Crowd Monitoring:** Live crowd levels (Low, Medium, High) displayed on an interactive map.
+*   **Interactive Map:** Built with Leaflet, showcasing various Chennai landmarks with custom markers.
+*   **Data Visualization:** "Popular Times" charts and historical trends using Recharts.
+*   **AI-Powered Analysis:** Backend integration with YOLOv8 for detecting and counting people in video feeds (uploaded or live).
+*   **Dual-Mode Interface:** Seamless toggle between Public Mode (User) and Admin Mode.
+*   **Modern UI/UX:** Designed with Glassmorphism, smooth animations (Framer Motion), and a clean, light-themed aesthetic.
 
-Changes made via Lovable will be committed automatically to this repo.
+## 🛠️ Technology Stack
 
-**Use your preferred IDE**
+### Frontend
+*   **Framework:** React 18 (Vite)
+*   **Language:** TypeScript
+*   **Styling:** Tailwind CSS, Shadcn UI, Lucide React
+*   **Maps:** Leaflet, React Leaflet
+*   **Animations:** Framer Motion
+*   **Charts:** Recharts
+*   **State/Data:** React Query, React Hook Form
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Backend
+*   **Framework:** FastAPI (Python)
+*   **AI/ML:** YOLOv8 (Ultralytics) for object detection
+*   **Video Processing:** OpenCV
+*   **Communication:** WebSockets for live updates
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 📂 Project Structure
 
-Follow these steps:
+```bash
+chennai-crowd-watch/
+├── src/                # Frontend source code
+│   ├── components/     # Reusable UI components
+│   ├── pages/          # Application pages (Public & Admin)
+│   ├── hooks/          # Custom React hooks
+│   └── data/           # Mock data and configuration
+├── backend/            # Backend source code
+│   ├── services/       # Business logic (Video processing, etc.)
+│   ├── routers/        # API endpoints
+│   └── main.py         # Entry point for FastAPI
+└── README.md           # Project documentation
+```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+## ⚡ Getting Started
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+Follow these instructions to set up the project locally.
 
-# Step 3: Install the necessary dependencies.
-npm i
+### Prerequisites
+*   Node.js (v18 or higher)
+*   Python (v3.9 or higher)
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+### 1. Backend Setup
+Navigate to the backend directory and set up the Python environment.
+
+```bash
+cd backend
+
+# Create a virtual environment
+python -m venv venv
+
+# Activate the virtual environment
+# Windows:
+venv\Scripts\activate
+# macOS/Linux:
+# source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Start the server
+uvicorn main:app --reload --port 8000
+```
+
+### 2. Frontend Setup
+Open a new terminal, navigate to the project root, and install frontend dependencies.
+
+```bash
+# Install dependencies
+npm install
+
+# Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+The frontend will typically run on `http://localhost:8080` (or similar), and the backend API will be available at `http://localhost:8000`.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## 🖥️ Usage
 
-**Use GitHub Codespaces**
+*   **Public View:** Open the application in your browser. You will see the map of Chennai with various location markers. Click on any marker to see details like current crowd status and popular times.
+*   **Admin Panel:** Toggle the switch in the navigation bar (if available) or navigate to `/admin` to access the dashboard. Here you can upload videos for analysis or view live camera simulations.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🤝 Contributing
 
-## What technologies are used for this project?
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-This project is built with:
+## 📄 License
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+This project is open-source and available under the [MIT License](LICENSE).

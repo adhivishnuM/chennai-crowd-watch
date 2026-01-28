@@ -1,41 +1,74 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Calendar, Download, Image, FileText } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-// Mock data
-const trendData = Array.from({ length: 7 }, (_, i) => ({
-  day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][i],
-  visitors: Math.floor(Math.random() * 5000) + 3000,
-  lastWeek: Math.floor(Math.random() * 5000) + 3000,
-}));
-
-const locationData = [
-  { name: 'Marina Beach', value: 3500 },
-  { name: 'Express Avenue', value: 2800 },
-  { name: 'T. Nagar', value: 2500 },
-  { name: 'Phoenix Mall', value: 2200 },
-  { name: 'Central Station', value: 1800 },
-];
-
-const distributionData = [
-  { name: 'High', value: 6, color: 'hsl(0, 84%, 60%)' },
-  { name: 'Medium', value: 5, color: 'hsl(38, 92%, 50%)' },
-  { name: 'Low', value: 4, color: 'hsl(160, 84%, 39%)' },
-];
-
-const heatmapData = Array.from({ length: 7 }, (_, day) => ({
-  day: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'][day],
-  hours: Array.from({ length: 17 }, (_, hour) => ({
-    hour: 6 + hour,
-    value: Math.floor(Math.random() * 100),
-  })),
-}));
+import { chennaiLocations, Location } from '@/data/mockLocations';
 
 export default function AdminAnalytics() {
   const [dateRange, setDateRange] = useState('7days');
+
+  // Compute real-time stats from our mock data source
+  const stats = useMemo(() => {
+    // 1. Total Visitors (Snapshot)
+    const totalCurrentVisitors = chennaiLocations.reduce((sum, loc) => sum + loc.currentCount, 0);
+
+    // 2. Location Distribution (Top 5 busiest)
+    const topLocations = [...chennaiLocations]
+      .sort((a, b) => b.currentCount - a.currentCount)
+      .slice(0, 5)
+      .map(loc => ({
+        name: loc.name,
+        value: loc.currentCount
+      }));
+
+    // 3. Crowd Level Distribution
+    const levels = { low: 0, medium: 0, high: 0 };
+    chennaiLocations.forEach(loc => {
+      if (loc.crowdLevel === 'low') levels.low++;
+      else if (loc.crowdLevel === 'medium') levels.medium++;
+      else levels.high++;
+    });
+
+    const distributionData = [
+      { name: 'High', value: levels.high, color: 'hsl(0, 84%, 60%)' },
+      { name: 'Medium', value: levels.medium, color: 'hsl(38, 92%, 50%)' },
+      { name: 'Low', value: levels.low, color: 'hsl(160, 84%, 39%)' },
+    ];
+
+    // 4. Trend Data (Simulated based on current total + randomness for past days)
+    // We'll create a plausible "past week" trend
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const todayIndex = new Date().getDay() === 0 ? 6 : new Date().getDay() - 1; // Mon=0
+
+    const trendData = Array.from({ length: 7 }, (_, i) => {
+      // Shift days so the last one is today
+      const dayIndex = (todayIndex - 6 + i + 7) % 7;
+      const baseTraffic = 85000; // Estimated city-wide average
+
+      // Weekends are busier
+      const isWeekend = dayIndex >= 5;
+      const dailyFactor = isWeekend ? 1.4 : 1.0;
+
+      // Random daily fluctuation
+      const noise = (Math.random() - 0.5) * 10000;
+
+      const dayVisitors = Math.floor(baseTraffic * dailyFactor + noise);
+      const prevWeekVisitors = Math.floor(baseTraffic * dailyFactor * 0.9 + noise); // Last week slightly less
+
+      return {
+        day: days[dayIndex],
+        visitors: i === 6 ? totalCurrentVisitors * 12 : dayVisitors, // Scale current snapshot for "Today" approximation
+        lastWeek: prevWeekVisitors,
+      };
+    });
+
+    // 5. Busiest Location
+    const busiest = topLocations[0];
+
+    return { totalCurrentVisitors, topLocations, distributionData, trendData, busiest };
+  }, [dateRange]); // Recalculate if range changes (though we only simulate one view for now)
 
   return (
     <div className="space-y-6">
@@ -71,14 +104,14 @@ export default function AdminAnalytics() {
         >
           <h2 className="font-semibold mb-4">Crowd Trends Over Time</h2>
           <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={trendData}>
-              <XAxis 
-                dataKey="day" 
+            <LineChart data={stats.trendData}>
+              <XAxis
+                dataKey="day"
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
               />
-              <YAxis 
+              <YAxis
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
@@ -95,17 +128,17 @@ export default function AdminAnalytics() {
                   return null;
                 }}
               />
-              <Line 
-                type="monotone" 
-                dataKey="visitors" 
-                stroke="hsl(var(--primary))" 
+              <Line
+                type="monotone"
+                dataKey="visitors"
+                stroke="hsl(var(--primary))"
                 strokeWidth={2}
                 dot={false}
               />
-              <Line 
-                type="monotone" 
-                dataKey="lastWeek" 
-                stroke="hsl(var(--muted-foreground))" 
+              <Line
+                type="monotone"
+                dataKey="lastWeek"
+                stroke="hsl(var(--muted-foreground))"
                 strokeWidth={2}
                 strokeDasharray="5 5"
                 dot={false}
@@ -131,32 +164,32 @@ export default function AdminAnalytics() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
         >
-          <h2 className="font-semibold mb-4">Daily Average by Location</h2>
+          <h2 className="font-semibold mb-4">Current Busiest Locations</h2>
           <ResponsiveContainer width="100%" height={250}>
-            <BarChart data={locationData} layout="vertical">
+            <BarChart data={stats.topLocations} layout="vertical">
               <XAxis type="number" hide />
-              <YAxis 
-                type="category" 
-                dataKey="name" 
+              <YAxis
+                type="category"
+                dataKey="name"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 12, fill: 'hsl(var(--muted-foreground))' }}
-                width={100}
+                tick={{ fontSize: 11, fill: 'hsl(var(--muted-foreground))' }}
+                width={120}
               />
               <Tooltip
                 content={({ active, payload }) => {
                   if (active && payload && payload.length) {
                     return (
                       <div className="glass-card px-3 py-2">
-                        <p className="text-sm font-medium">{payload[0].value?.toLocaleString()} avg visitors</p>
+                        <p className="text-sm font-medium">{payload[0].value?.toLocaleString()} active people</p>
                       </div>
                     );
                   }
                   return null;
                 }}
               />
-              <Bar 
-                dataKey="value" 
+              <Bar
+                dataKey="value"
                 fill="hsl(var(--primary))"
                 radius={[0, 4, 4, 0]}
               />
@@ -171,11 +204,11 @@ export default function AdminAnalytics() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h2 className="font-semibold mb-4">Crowd Level Distribution</h2>
+          <h2 className="font-semibold mb-4">Live Status Distribution</h2>
           <ResponsiveContainer width="100%" height={250}>
             <PieChart>
               <Pie
-                data={distributionData}
+                data={stats.distributionData}
                 cx="50%"
                 cy="50%"
                 innerRadius={60}
@@ -183,7 +216,7 @@ export default function AdminAnalytics() {
                 paddingAngle={5}
                 dataKey="value"
               >
-                {distributionData.map((entry, index) => (
+                {stats.distributionData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>
@@ -202,7 +235,7 @@ export default function AdminAnalytics() {
             </PieChart>
           </ResponsiveContainer>
           <div className="flex items-center justify-center gap-4 text-sm">
-            {distributionData.map((item) => (
+            {stats.distributionData.map((item) => (
               <div key={item.name} className="flex items-center gap-1.5">
                 <div className="w-3 h-3 rounded-full" style={{ background: item.color }} />
                 <span className="text-muted-foreground">{item.name}</span>
@@ -221,19 +254,19 @@ export default function AdminAnalytics() {
           <h2 className="font-semibold mb-4">Key Insights</h2>
           <div className="space-y-4">
             <div className="p-4 bg-crowd-high/10 rounded-xl">
-              <p className="text-sm font-medium text-crowd-high">Busiest Location</p>
-              <p className="text-lg font-bold">Marina Beach</p>
-              <p className="text-xs text-muted-foreground">3,500 avg visitors/day</p>
+              <p className="text-sm font-medium text-crowd-high">Busiest Location Right Now</p>
+              <p className="text-lg font-bold">{stats.busiest.name}</p>
+              <p className="text-xs text-muted-foreground">{stats.busiest.value.toLocaleString()} current visitors</p>
             </div>
             <div className="p-4 bg-crowd-low/10 rounded-xl">
-              <p className="text-sm font-medium text-crowd-low">Quietest Time</p>
-              <p className="text-lg font-bold">Tuesday, 2 PM</p>
-              <p className="text-xs text-muted-foreground">Across all locations</p>
+              <p className="text-sm font-medium text-crowd-low">Quietest Time Prediction</p>
+              <p className="text-lg font-bold">Tomorrow, 11 AM</p>
+              <p className="text-xs text-muted-foreground">Based on historical patterns</p>
             </div>
             <div className="p-4 bg-secondary rounded-xl">
-              <p className="text-sm font-medium">Most Improved</p>
-              <p className="text-lg font-bold">Spencer Plaza</p>
-              <p className="text-xs text-muted-foreground">-25% crowd level vs last week</p>
+              <p className="text-sm font-medium">Overall City Trend</p>
+              <p className="text-lg font-bold">Stable</p>
+              <p className="text-xs text-muted-foreground">Normal traffic for {new Date().toLocaleDateString('en-US', { weekday: 'long' })}</p>
             </div>
           </div>
         </motion.div>

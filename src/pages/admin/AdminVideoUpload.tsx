@@ -160,7 +160,7 @@ export default function AdminVideoUpload() {
     if (timerRef.current) clearInterval(timerRef.current);
   };
 
-  const avgCount = stats?.avg_count ?? (stats?.counts?.length ? Math.round(stats.counts.reduce((a, b) => a + b, 0) / stats.counts.length) : 0);
+  const avgCount = Math.round(stats?.avg_count ?? (stats?.counts?.length ? stats.counts.reduce((a, b) => a + b, 0) / stats.counts.length : 0));
   const peakCount = stats?.peak_count ?? (stats?.counts?.length ? Math.max(...stats.counts) : 0);
   const minCount = stats?.min_count ?? (stats?.counts?.length ? Math.min(...stats.counts) : 0);
 
@@ -477,8 +477,8 @@ export default function AdminVideoUpload() {
                         {/* Bar */}
                         <div
                           className={`w-full rounded-t min-h-[4px] transition-all ${hoveredBar?.second === s.second
-                              ? 'bg-primary scale-110 shadow-lg'
-                              : 'bg-primary/70 group-hover:bg-primary'
+                            ? 'bg-primary scale-110 shadow-lg'
+                            : 'bg-primary/70 group-hover:bg-primary'
                             }`}
                           style={{ height: `${Math.max(4, Math.min(85, (s.avg_count / (peakCount || 1)) * 85))}%` }}
                         />
