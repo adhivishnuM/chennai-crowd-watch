@@ -352,7 +352,7 @@ export default function AdminLiveCCTV() {
                         </div>
 
                         {/* Video Canvas */}
-                        <div className="relative aspect-video bg-black">
+                        <div className="relative h-[65vh] max-h-[600px] w-full bg-black flex items-center justify-center">
                             {selectedCamera ? (
                                 <>
                                     <canvas

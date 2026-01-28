@@ -1,67 +1,110 @@
 # Chennai Crowd Watch (CROWDEX)
 
-**Chennai Crowd Watch** is a cutting-edge Real-Time Public Crowd Awareness System designed for Chennai, India. It empowers users with live crowd data to make informed decisions before visiting popular public locations.
+**Chennai Crowd Watch** is a state-of-the-art Real-Time Public Crowd Awareness System designed specifically for the bustling city of Chennai. It empowers citizens and tourists with live crowd data, enabling them to make informed decisions about visiting popular public locations such as malls, beaches, parks, and transit hubs.
 
 > **Tagline:** *"Know Before You Go"*
 
+---
+
+## 📖 Table of Contents
+
+- [Project Overview](#project-overview)
+- [Key Features](#key-features)
+- [Architecture](#architecture)
+- [Technology Stack](#technology-stack)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation & Setup](#installation--setup)
+- [Usage Guide](#usage-guide)
+- [API Documentation](#api-documentation)
+- [Contributing](#contributing)
+- [License](#license)
+
+---
+
 ## 🚀 Project Overview
 
-This application serves two primary user groups:
-1.  **Public Users:** Can view real-time crowd status, "best time to visit" recommendations, and popular time trends for malls, beaches, parks, and transit hubs.
-2.  **Administrators:** Have access to a powerful dashboard for managing camera feeds, uploading videos for analysis, and viewing detailed analytics.
+In a densely populated city like Chennai, overcrowding at public places is a common challenge. **Chennai Crowd Watch** addresses this by providing a dual-interface application:
 
-### Key Features
+1.  **Public Interface:** A user-friendly, map-based interface for the general public to view real-time crowd status, "best visit times," and historical trends.
+2.  **Admin Interface:** A robust dashboard for authorities and administrators to manage camera feeds, analyze video data, and oversee the system's data inputs.
 
-*   **Real-Time Crowd Monitoring:** Live crowd levels (Low, Medium, High) displayed on an interactive map.
-*   **Interactive Map:** Built with Leaflet, showcasing various Chennai landmarks with custom markers.
-*   **Data Visualization:** "Popular Times" charts and historical trends using Recharts.
-*   **AI-Powered Analysis:** Backend integration with YOLOv8 for detecting and counting people in video feeds (uploaded or live).
-*   **Dual-Mode Interface:** Seamless toggle between Public Mode (User) and Admin Mode.
-*   **Modern UI/UX:** Designed with Glassmorphism, smooth animations (Framer Motion), and a clean, light-themed aesthetic.
+The system leverages **Computer Vision (YOLOv8)** to analyze video feeds in real-time, converting visual data into actionable crowd metrics.
+
+---
+
+## ✨ Key Features
+
+### 🌍 For Public Users
+*   **Interactive Map:** A dynamic Leaflet-based map displaying key locations across Chennai with custom markers indicating crowd density.
+*   **Real-Time Status:** Instant visual cues (Green/Yellow/Red) representing Low, Medium, and High crowd levels.
+*   **Smart Recommendations:** AI-driven "Best Time to Visit" suggestions based on historical and current data.
+*   **Data Visualization:** Interactive charts showing popular times and crowd trends using Recharts.
+*   **Search Functionality:** easy-to-use search bar to find specific malls, parks, or beaches.
+
+### 🛡️ For Administrators
+*   **Dashboard:** specialized view for managing the system's core data.
+*   **Live Camera Management:** Tools to add, remove, and monitor simulated or real CCTV feeds.
+*   **Video Analysis:** Upload interface for processing recorded footage through the YOLOv8 engine to extract crowd data.
+*   **System Health:** Monitoring of backend services and WebSocket connections.
+
+---
+
+## 🏗️ Architecture
+
+The application follows a modern **Client-Server architecture**:
+
+*   **Frontend:** A Single Page Application (SPA) built with React and TypeScript, communicating with the backend via REST APIs and WebSockets.
+*   **Backend:** A high-performance FastAPI server that handles API requests, manages WebSocket connections for real-time updates, and runs the YOLOv8 inference engine.
+*   **AI Engine:** Ultralytics YOLOv8 model optimized for person detection, processing video frames to count individuals.
+
+---
 
 ## 🛠️ Technology Stack
 
 ### Frontend
-*   **Framework:** React 18 (Vite)
-*   **Language:** TypeScript
-*   **Styling:** Tailwind CSS, Shadcn UI, Lucide React
-*   **Maps:** Leaflet, React Leaflet
-*   **Animations:** Framer Motion
-*   **Charts:** Recharts
-*   **State/Data:** React Query, React Hook Form
+| Component | Technology | Description |
+| :--- | :--- | :--- |
+| **Framework** | React 18 (Vite) | Fast, modern web application framework. |
+| **Language** | TypeScript | Type-safe JavaScript for robust code. |
+| **UI Library** | Shadcn UI | Accessible and customizable component primitives. |
+| **Styling** | Tailwind CSS | Utility-first CSS framework for rapid UI development. |
+| **Maps** | React Leaflet | React components for Leaflet maps. |
+| **State Mgmt** | React Query | Powerful data synchronization and caching. |
+| **Animations** | Framer Motion | Production-ready animation library. |
+| **Charts** | Recharts | Composable charting library. |
 
 ### Backend
-*   **Framework:** FastAPI (Python)
-*   **AI/ML:** YOLOv8 (Ultralytics) for object detection
-*   **Video Processing:** OpenCV
-*   **Communication:** WebSockets for live updates
+| Component | Technology | Description |
+| :--- | :--- | :--- |
+| **Framework** | FastAPI | High-performance Python web framework. |
+| **Language** | Python 3.9+ | Primary backend language. |
+| **AI Model** | YOLOv8 | State-of-the-art object detection model. |
+| **Vision** | OpenCV | Library for real-time computer vision. |
+| **Real-time** | WebSockets | Full-duplex communication channels. |
 
-## 📂 Project Structure
-
-```bash
-chennai-crowd-watch/
-├── src/                # Frontend source code
-│   ├── components/     # Reusable UI components
-│   ├── pages/          # Application pages (Public & Admin)
-│   ├── hooks/          # Custom React hooks
-│   └── data/           # Mock data and configuration
-├── backend/            # Backend source code
-│   ├── services/       # Business logic (Video processing, etc.)
-│   ├── routers/        # API endpoints
-│   └── main.py         # Entry point for FastAPI
-└── README.md           # Project documentation
-```
+---
 
 ## ⚡ Getting Started
 
-Follow these instructions to set up the project locally.
+Follow these steps to set up the project locally.
 
 ### Prerequisites
-*   Node.js (v18 or higher)
-*   Python (v3.9 or higher)
+Ensure you have the following installed on your system:
+*   [Node.js](https://nodejs.org/) (v18 or higher)
+*   [Python](https://www.python.org/) (v3.9 or higher)
+*   [Git](https://git-scm.com/)
 
-### 1. Backend Setup
-Navigate to the backend directory and set up the Python environment.
+### Installation & Setup
+
+#### 1. Clone the Repository
+```bash
+git clone https://github.com/ADHITHIN/chennai-crowd-watch.git
+cd chennai-crowd-watch
+```
+
+#### 2. Backend Setup
+Navigate to the backend folder and set up the Python environment.
 
 ```bash
 cd backend
@@ -70,40 +113,76 @@ cd backend
 python -m venv venv
 
 # Activate the virtual environment
-# Windows:
+# On Windows:
 venv\Scripts\activate
-# macOS/Linux:
+# On macOS/Linux:
 # source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
-
-# Start the server
-uvicorn main:app --reload --port 8000
 ```
 
-### 2. Frontend Setup
-Open a new terminal, navigate to the project root, and install frontend dependencies.
+#### 3. Frontend Setup
+Open a new terminal, navigate to the project root, and install dependencies.
 
 ```bash
-# Install dependencies
+# Ensure you are in the root directory (chennai-crowd-watch)
 npm install
-
-# Start the development server
-npm run dev
 ```
 
-The frontend will typically run on `http://localhost:8080` (or similar), and the backend API will be available at `http://localhost:8000`.
+### Running the Application
 
-## 🖥️ Usage
+**Option 1: Quick Start (Batch Script)**
+If you are on Windows, you can use the provided batch file to start both services:
+```bash
+./run_backend.bat
+```
+*(Note: You made need to manually start the frontend server in a separate terminal if the batch file only targets the backend)*
 
-*   **Public View:** Open the application in your browser. You will see the map of Chennai with various location markers. Click on any marker to see details like current crowd status and popular times.
-*   **Admin Panel:** Toggle the switch in the navigation bar (if available) or navigate to `/admin` to access the dashboard. Here you can upload videos for analysis or view live camera simulations.
+**Option 2: Manual Start**
+
+1.  **Start Backend:**
+    ```bash
+    cd backend
+    # Ensure venv is active
+    uvicorn main:app --reload --port 8000
+    ```
+
+2.  **Start Frontend:**
+    ```bash
+    # From project root
+    npm run dev
+    ```
+
+The frontend will run at `http://localhost:8080` (or similar), and the backend API will typically be at `http://localhost:8000`.
+
+---
+
+## 📖 API Documentation
+
+The backend exposes several endpoints. Once the server is running, you can visit `http://localhost:8000/docs` for the interactive Swagger UI.
+
+### Key Endpoints:
+*   `GET /api/locations`: Retrieve all location data.
+*   `POST /api/upload`: Upload video files for analysis.
+*   `GET /api/camera`: List available camera feeds.
+*   `WS /ws/camera/{camera_id}`: WebSocket endpoint for live camera streams.
+*   `WS /ws/upload/{file_id}/progress`: WebSocket endpoint for video processing status.
+
+---
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+We welcome contributions to improve Chennai Crowd Watch!
+
+1.  Fork the Project
+2.  Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
+3.  Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
+4.  Push to the Branch (`git push origin feature/AmazingFeature`)
+5.  Open a Pull Request
+
+---
 
 ## 📄 License
 
-This project is open-source and available under the [MIT License](LICENSE).
+Distributed under the MIT License. See `LICENSE` for more information.
