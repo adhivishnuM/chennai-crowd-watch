@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Search, Edit, Trash2, Eye, MapPin, Video, X } from 'lucide-react';
-import { chennaiLocations, Location, getLocationTypeIcon } from '@/data/mockLocations';
+import { chennaiLocations, Location } from '@/data/mockLocations';
 import { CrowdBadge } from '@/components/CrowdBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { LocationTypeIcon, locationTypeFilters } from '@/components/LocationTypeIcon';
 
 export default function AdminLocations() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -88,7 +89,9 @@ export default function AdminLocations() {
                 >
                   <td className="p-4">
                     <div className="flex items-center gap-2">
-                      <span className="text-lg">{getLocationTypeIcon(location.type)}</span>
+                      <div className="w-8 h-8 rounded-lg bg-secondary/80 flex items-center justify-center">
+                        <LocationTypeIcon type={location.type} size={16} className="text-foreground" />
+                      </div>
                       <span className="font-medium">{location.name}</span>
                     </div>
                   </td>
@@ -108,9 +111,9 @@ export default function AdminLocations() {
                       <Button variant="ghost" size="icon" className="h-8 w-8">
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         className="h-8 w-8"
                         onClick={() => openEditModal(location)}
                       >
@@ -137,34 +140,34 @@ export default function AdminLocations() {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <Label htmlFor="name">Location Name</Label>
-              <Input 
-                id="name" 
-                placeholder="e.g., Express Avenue Mall" 
+              <Input
+                id="name"
+                placeholder="e.g., Express Avenue Mall"
                 defaultValue={editingLocation?.name}
               />
             </div>
             <div className="space-y-2">
               <Label htmlFor="address">Address</Label>
-              <Input 
-                id="address" 
-                placeholder="e.g., Anna Salai, Chennai" 
+              <Input
+                id="address"
+                placeholder="e.g., Anna Salai, Chennai"
                 defaultValue={editingLocation?.address}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="lat">Latitude</Label>
-                <Input 
-                  id="lat" 
-                  placeholder="13.0500" 
+                <Input
+                  id="lat"
+                  placeholder="13.0500"
                   defaultValue={editingLocation?.lat}
                 />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="lng">Longitude</Label>
-                <Input 
-                  id="lng" 
-                  placeholder="80.2500" 
+                <Input
+                  id="lng"
+                  placeholder="80.2500"
                   defaultValue={editingLocation?.lng}
                 />
               </div>
@@ -177,21 +180,23 @@ export default function AdminLocations() {
                     <SelectValue placeholder="Select type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="mall">🏬 Mall</SelectItem>
-                    <SelectItem value="beach">🏖️ Beach</SelectItem>
-                    <SelectItem value="park">🌳 Park</SelectItem>
-                    <SelectItem value="transit">🚉 Transit</SelectItem>
-                    <SelectItem value="market">🛒 Market</SelectItem>
-                    <SelectItem value="museum">🏛️ Museum</SelectItem>
+                    {locationTypeFilters.filter(f => f.value !== 'all').map(f => (
+                      <SelectItem key={f.value} value={f.value}>
+                        <div className="flex items-center gap-2">
+                          <LocationTypeIcon type={f.value} size={14} />
+                          <span>{f.label.replace(/s$/, '')}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="capacity">Capacity</Label>
-                <Input 
-                  id="capacity" 
+                <Input
+                  id="capacity"
                   type="number"
-                  placeholder="1000" 
+                  placeholder="1000"
                   defaultValue={editingLocation?.capacity}
                 />
               </div>

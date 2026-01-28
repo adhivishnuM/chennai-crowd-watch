@@ -2,16 +2,18 @@ import { ModeProvider, useMode } from '@/context/ModeContext';
 import { Navbar } from '@/components/Navbar';
 import PublicHome from './PublicHome';
 import BestTimes from './BestTimes';
+import Transport from './Transport';
 import LocationDetail from './LocationDetail';
+import Alerts from './Alerts';
 import AdminPanel from './AdminPanel';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import { Map, Clock, Bell, User } from 'lucide-react';
+import { Map, Clock, Bell, User, Bus } from 'lucide-react';
 import { NavLink } from '@/components/NavLink';
 
 function MobileTabBar() {
   const { mode } = useMode();
-  
+
   if (mode === 'admin') return null;
 
   return (
@@ -22,8 +24,8 @@ function MobileTabBar() {
       transition={{ delay: 0.2 }}
     >
       <div className="flex items-center justify-around h-16">
-        <NavLink 
-          to="/" 
+        <NavLink
+          to="/"
           end
           className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground"
           activeClassName="text-primary"
@@ -31,7 +33,15 @@ function MobileTabBar() {
           <Map className="w-5 h-5" />
           <span className="text-xs">Map</span>
         </NavLink>
-        <NavLink 
+        <NavLink
+          to="/transport"
+          className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground"
+          activeClassName="text-primary"
+        >
+          <Bus className="w-5 h-5" />
+          <span className="text-xs">Transport</span>
+        </NavLink>
+        <NavLink
           to="/best-times"
           className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground"
           activeClassName="text-primary"
@@ -39,7 +49,7 @@ function MobileTabBar() {
           <Clock className="w-5 h-5" />
           <span className="text-xs">Best Times</span>
         </NavLink>
-        <NavLink 
+        <NavLink
           to="/alerts"
           className="flex flex-col items-center gap-1 px-4 py-2 text-muted-foreground"
           activeClassName="text-primary"
@@ -70,9 +80,10 @@ function AppContent() {
           >
             <Routes location={location}>
               <Route path="/" element={<PublicHome />} />
+              <Route path="/transport" element={<Transport />} />
               <Route path="/best-times" element={<BestTimes />} />
               <Route path="/location/:id" element={<LocationDetail />} />
-              <Route path="/alerts" element={<BestTimes />} />
+              <Route path="/alerts" element={<Alerts />} />
             </Routes>
           </motion.div>
         ) : (

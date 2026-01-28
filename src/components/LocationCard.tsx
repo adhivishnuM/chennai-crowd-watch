@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion';
 import { MapPin, TrendingUp, TrendingDown, Minus, Clock, Users } from 'lucide-react';
 import CountUp from 'react-countup';
-import { Location, getLocationTypeIcon, getTrendIcon } from '@/data/mockLocations';
+import { Location, getTrendIcon } from '@/data/mockLocations';
 import { CrowdBadge } from './CrowdBadge';
 import { Progress } from '@/components/ui/progress';
+import { useMode } from '@/context/ModeContext';
+import { LocationTypeIcon } from './LocationTypeIcon';
 
 interface LocationCardProps {
   location: Location;
@@ -12,8 +14,9 @@ interface LocationCardProps {
 }
 
 export function LocationCard({ location, onClick, index = 0 }: LocationCardProps) {
+  const { mode } = useMode();
   const capacityPercentage = Math.round((location.currentCount / location.capacity) * 100);
-  
+
   const TrendIcon = {
     rising: TrendingUp,
     falling: TrendingDown,
@@ -40,7 +43,9 @@ export function LocationCard({ location, onClick, index = 0 }: LocationCardProps
         {/* Header */}
         <div className="flex items-start justify-between gap-2">
           <div className="flex items-start gap-3 min-w-0">
-            <span className="text-2xl flex-shrink-0">{getLocationTypeIcon(location.type)}</span>
+            <div className="w-10 h-10 rounded-xl bg-secondary/80 flex items-center justify-center flex-shrink-0">
+              <LocationTypeIcon type={location.type} size={20} className="text-foreground" />
+            </div>
             <div className="min-w-0">
               <h3 className="font-semibold text-foreground truncate">{location.name}</h3>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
@@ -54,13 +59,17 @@ export function LocationCard({ location, onClick, index = 0 }: LocationCardProps
 
         {/* Stats Row */}
         <div className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-1.5">
-            <Users className="w-4 h-4 text-muted-foreground" />
-            <span className="font-medium tabular-nums">
-              ~<CountUp end={location.currentCount} duration={1.5} separator="," />
-            </span>
-            <span className="text-muted-foreground">people</span>
-          </div>
+          {mode === 'admin' ? (
+            <div className="flex items-center gap-1.5">
+              <Users className="w-4 h-4 text-muted-foreground" />
+              <span className="font-medium tabular-nums">
+                ~<CountUp end={location.currentCount} duration={1.5} separator="," />
+              </span>
+              <span className="text-muted-foreground">people</span>
+            </div>
+          ) : (
+            <div></div> // Spacer to keep layout if needed, or just null
+          )}
           <div className={`flex items-center gap-1 ${trendColor}`}>
             <TrendIcon className="w-4 h-4" />
             <span className="text-xs font-medium capitalize">{location.trend}</span>
@@ -73,8 +82,8 @@ export function LocationCard({ location, onClick, index = 0 }: LocationCardProps
             <span className="text-muted-foreground">Capacity</span>
             <span className="font-medium tabular-nums">{capacityPercentage}% full</span>
           </div>
-          <Progress 
-            value={capacityPercentage} 
+          <Progress
+            value={capacityPercentage}
             className="h-1.5"
           />
         </div>

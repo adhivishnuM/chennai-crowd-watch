@@ -3,11 +3,13 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, MapPin, Users, Clock, TrendingUp, TrendingDown, Minus, Sparkles, AlertTriangle, BarChart3 } from 'lucide-react';
 import CountUp from 'react-countup';
 import { LineChart, Line, XAxis, YAxis, ResponsiveContainer, Tooltip, AreaChart, Area } from 'recharts';
-import { chennaiLocations, getLocationTypeIcon } from '@/data/mockLocations';
+import { chennaiLocations } from '@/data/mockLocations';
 import { CrowdBadge } from '@/components/CrowdBadge';
 import { PopularTimesChart } from '@/components/PopularTimesChart';
 import { Progress } from '@/components/ui/progress';
 import { Button } from '@/components/ui/button';
+import { useMode } from '@/context/ModeContext';
+import { LocationTypeIcon } from '@/components/LocationTypeIcon';
 
 // Mock trend data for the last 3 hours
 const generateTrendData = () => {
@@ -24,6 +26,7 @@ const generateTrendData = () => {
 export default function LocationDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { mode } = useMode();
   const location = chennaiLocations.find(loc => loc.id === id);
 
   if (!location) {
@@ -85,7 +88,9 @@ export default function LocationDetail() {
         >
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div className="flex items-start gap-4">
-              <span className="text-4xl">{getLocationTypeIcon(location.type)}</span>
+              <div className="w-14 h-14 rounded-2xl bg-secondary/80 flex items-center justify-center">
+                <LocationTypeIcon type={location.type} size={28} className="text-foreground" />
+              </div>
               <div>
                 <h1 className="text-2xl md:text-3xl font-bold">{location.name}</h1>
                 <div className="flex items-center gap-1.5 text-muted-foreground mt-1">
@@ -98,15 +103,28 @@ export default function LocationDetail() {
           </div>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-            <div className="text-center p-4 bg-secondary/50 rounded-xl">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <Users className="w-5 h-5 text-muted-foreground" />
+            {mode === 'admin' ? (
+              <div className="text-center p-4 bg-secondary/50 rounded-xl">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Users className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div className="text-2xl font-bold tabular-nums">
+                  ~<CountUp end={location.currentCount} duration={1.5} separator="," />
+                </div>
+                <div className="text-xs text-muted-foreground">people now</div>
               </div>
-              <div className="text-2xl font-bold tabular-nums">
-                ~<CountUp end={location.currentCount} duration={1.5} separator="," />
+            ) : (
+              // Replaced with a placeholder or simple status for public
+              <div className="text-center p-4 bg-secondary/50 rounded-xl">
+                <div className="flex items-center justify-center gap-1 mb-1">
+                  <Users className="w-5 h-5 text-muted-foreground" />
+                </div>
+                <div className="text-lg font-bold">
+                  {capacityPercentage > 70 ? "High" : capacityPercentage > 40 ? "Medium" : "Low"}
+                </div>
+                <div className="text-xs text-muted-foreground">Level</div>
               </div>
-              <div className="text-xs text-muted-foreground">people now</div>
-            </div>
+            )}
             <div className="text-center p-4 bg-secondary/50 rounded-xl">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <BarChart3 className="w-5 h-5 text-muted-foreground" />
@@ -134,7 +152,7 @@ export default function LocationDetail() {
           <div className="mt-6">
             <div className="flex items-center justify-between text-sm mb-2">
               <span className="text-muted-foreground">Current Capacity</span>
-              <span className="font-semibold">{location.currentCount.toLocaleString()} / {location.capacity.toLocaleString()}</span>
+              <span className="font-semibold">{mode === 'admin' ? `${location.currentCount.toLocaleString()} / ${location.capacity.toLocaleString()}` : `${capacityPercentage}%`}</span>
             </div>
             <Progress value={capacityPercentage} className="h-3" />
           </div>
@@ -189,12 +207,12 @@ export default function LocationDetail() {
             <AreaChart data={trendData}>
               <defs>
                 <linearGradient id="colorCount" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3}/>
-                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <XAxis 
-                dataKey="time" 
+              <XAxis
+                dataKey="time"
                 axisLine={false}
                 tickLine={false}
                 tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}

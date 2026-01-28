@@ -7,6 +7,7 @@ import { Location, CrowdLevel } from '@/data/mockLocations';
 import { CrowdBadge } from './CrowdBadge';
 import { Users, TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import CountUp from 'react-countup';
+import { useMode } from '@/context/ModeContext';
 
 // Chennai center coordinates
 const CHENNAI_CENTER: [number, number] = [13.0500, 80.2500];
@@ -86,6 +87,7 @@ interface CrowdMapProps {
 
 export function CrowdMap({ locations, onLocationSelect, selectedLocation }: CrowdMapProps) {
   const mapRef = useRef<L.Map>(null);
+  const { mode } = useMode();
 
   const TrendIcon = (trend: Location['trend']) => {
     const icons = {
@@ -109,7 +111,7 @@ export function CrowdMap({ locations, onLocationSelect, selectedLocation }: Crow
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
         />
-        
+
         {selectedLocation && (
           <MapRecenter lat={selectedLocation.lat} lng={selectedLocation.lng} />
         )}
@@ -128,7 +130,7 @@ export function CrowdMap({ locations, onLocationSelect, selectedLocation }: Crow
               }}
             >
               <Popup className="custom-popup">
-                <motion.div 
+                <motion.div
                   className="p-4 min-w-[240px]"
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -140,17 +142,19 @@ export function CrowdMap({ locations, onLocationSelect, selectedLocation }: Crow
                     </div>
                     <CrowdBadge level={location.crowdLevel} size="sm" />
                   </div>
-                  
+
                   <div className="space-y-2 mb-3">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="flex items-center gap-1.5 text-muted-foreground">
-                        <Users className="w-4 h-4" />
-                        Current
-                      </span>
-                      <span className="font-semibold tabular-nums">
-                        ~<CountUp end={location.currentCount} duration={1} separator="," /> people
-                      </span>
-                    </div>
+                    {mode === 'admin' && (
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="flex items-center gap-1.5 text-muted-foreground">
+                          <Users className="w-4 h-4" />
+                          Current
+                        </span>
+                        <span className="font-semibold tabular-nums">
+                          ~<CountUp end={location.currentCount} duration={1} separator="," /> people
+                        </span>
+                      </div>
+                    )}
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Capacity</span>
                       <span className="font-medium">{capacityPercentage}% full</span>
@@ -158,17 +162,16 @@ export function CrowdMap({ locations, onLocationSelect, selectedLocation }: Crow
                     <div className="flex items-center justify-between text-sm">
                       <span className="text-muted-foreground">Trend</span>
                       <span className="flex items-center gap-1 capitalize">
-                        <Icon className={`w-4 h-4 ${
-                          location.trend === 'rising' ? 'text-crowd-high' : 
-                          location.trend === 'falling' ? 'text-crowd-low' : 
-                          'text-muted-foreground'
-                        }`} />
+                        <Icon className={`w-4 h-4 ${location.trend === 'rising' ? 'text-crowd-high' :
+                            location.trend === 'falling' ? 'text-crowd-low' :
+                              'text-muted-foreground'
+                          }`} />
                         {location.trend}
                       </span>
                     </div>
                   </div>
-                  
-                  <button 
+
+                  <button
                     className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
                     onClick={() => onLocationSelect?.(location)}
                   >

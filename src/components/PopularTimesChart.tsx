@@ -1,19 +1,39 @@
 import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell, Tooltip } from 'recharts';
 
-interface PopularTimesChartProps {
-  data: number[];
-  currentHour?: number;
+interface PopularTime {
+  hour: string;
+  crowdLevel: number;
+  label: string | null;
 }
 
-const HOURS = ['6a', '7a', '8a', '9a', '10a', '11a', '12p', '1p', '2p', '3p', '4p', '5p', '6p', '7p', '8p', '9p', '10p'];
+interface PopularTimesChartProps {
+  data: PopularTime[];
+  compact?: boolean;
+}
 
-export function PopularTimesChart({ data, currentHour = new Date().getHours() - 6 }: PopularTimesChartProps) {
-  const chartData = data.map((value, index) => ({
-    hour: HOURS[index],
-    value,
-    isCurrent: index === currentHour,
-  }));
+export function PopularTimesChart({ data, compact = false }: PopularTimesChartProps) {
+  if (!data) return null;
+
+  const currentHourIndex = new Date().getHours();
+
+  const chartData = data
+    .map((item, index) => {
+      const hourInt = parseInt(item.hour);
+      let hourLabel = '';
+      if (hourInt === 0) hourLabel = '12am';
+      else if (hourInt === 12) hourLabel = '12pm';
+      else if (hourInt > 12) hourLabel = `${hourInt - 12}pm`;
+      else hourLabel = `${hourInt}am`;
+
+      return {
+        hour: hourLabel,
+        value: item.crowdLevel,
+        isCurrent: index === currentHourIndex,
+        originalHour: index
+      };
+    })
+    .filter(item => item.originalHour >= 6 && item.originalHour <= 23);
 
   const getBarColor = (value: number, isCurrent: boolean) => {
     if (isCurrent) return 'hsl(var(--primary))';
@@ -28,6 +48,37 @@ export function PopularTimesChart({ data, currentHour = new Date().getHours() - 
     return 'busy';
   };
 
+  const currentVal = data[currentHourIndex]?.crowdLevel || 0;
+
+  // Compact mode for cards - just the chart, no header/legend
+  if (compact) {
+    return (
+      <div className="w-full h-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={chartData} barCategoryGap={1}>
+            <XAxis
+              dataKey="hour"
+              axisLine={false}
+              tickLine={false}
+              tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}
+              interval={3}
+            />
+            <Bar dataKey="value" radius={[2, 2, 0, 0]}>
+              {chartData.map((entry, index) => (
+                <Cell
+                  key={`cell-${index}`}
+                  fill={getBarColor(entry.value, entry.isCurrent)}
+                  opacity={entry.isCurrent ? 1 : 0.6}
+                />
+              ))}
+            </Bar>
+          </BarChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
+
+  // Full mode with header and legend
   return (
     <motion.div
       className="w-full"
@@ -38,14 +89,14 @@ export function PopularTimesChart({ data, currentHour = new Date().getHours() - 
       <div className="flex items-center justify-between mb-4">
         <h3 className="font-semibold">Popular Times</h3>
         <span className="text-sm text-muted-foreground">
-          Usually <span className="font-medium text-foreground">{getBusynessLabel(data[currentHour] || 50)}</span> at this time
+          Usually <span className="font-medium text-foreground">{getBusynessLabel(currentVal)}</span> at this time
         </span>
       </div>
-      
+
       <ResponsiveContainer width="100%" height={120}>
         <BarChart data={chartData} barCategoryGap={2}>
-          <XAxis 
-            dataKey="hour" 
+          <XAxis
+            dataKey="hour"
             axisLine={false}
             tickLine={false}
             tick={{ fontSize: 10, fill: 'hsl(var(--muted-foreground))' }}
@@ -66,13 +117,13 @@ export function PopularTimesChart({ data, currentHour = new Date().getHours() - 
               return null;
             }}
           />
-          <Bar 
-            dataKey="value" 
+          <Bar
+            dataKey="value"
             radius={[4, 4, 0, 0]}
           >
             {chartData.map((entry, index) => (
-              <Cell 
-                key={`cell-${index}`} 
+              <Cell
+                key={`cell-${index}`}
                 fill={getBarColor(entry.value, entry.isCurrent)}
                 opacity={entry.isCurrent ? 1 : 0.7}
               />
@@ -80,7 +131,7 @@ export function PopularTimesChart({ data, currentHour = new Date().getHours() - 
           </Bar>
         </BarChart>
       </ResponsiveContainer>
-      
+
       <div className="flex items-center justify-center gap-4 mt-2 text-xs">
         <div className="flex items-center gap-1.5">
           <div className="w-2.5 h-2.5 rounded-sm bg-crowd-low" />

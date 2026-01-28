@@ -1,23 +1,14 @@
 import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Clock, Filter, ChevronRight } from 'lucide-react';
-import { chennaiLocations, Location, getLocationTypeIcon } from '@/data/mockLocations';
+import { chennaiLocations, Location } from '@/data/mockLocations';
 import { CrowdBadge } from '@/components/CrowdBadge';
 import { PopularTimesChart } from '@/components/PopularTimesChart';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNavigate } from 'react-router-dom';
+import { LocationTypeIcon, locationTypeFilters } from '@/components/LocationTypeIcon';
 
-type FilterType = 'all' | 'mall' | 'beach' | 'park' | 'transit' | 'market' | 'museum';
-
-const filterOptions: { value: FilterType; label: string; emoji: string }[] = [
-  { value: 'all', label: 'All', emoji: '📍' },
-  { value: 'mall', label: 'Malls', emoji: '🏬' },
-  { value: 'beach', label: 'Beaches', emoji: '🏖️' },
-  { value: 'park', label: 'Parks', emoji: '🌳' },
-  { value: 'transit', label: 'Transit', emoji: '🚉' },
-  { value: 'market', label: 'Markets', emoji: '🛒' },
-  { value: 'museum', label: 'Museums', emoji: '🏛️' },
-];
+type FilterType = 'all' | 'mall' | 'foodcourt' | 'park' | 'transit' | 'market' | 'museum' | 'toll';
 
 export default function BestTimes() {
   const navigate = useNavigate();
@@ -25,16 +16,16 @@ export default function BestTimes() {
   const [selectedLocations, setSelectedLocations] = useState<string[]>([]);
 
   const filteredLocations = useMemo(() => {
-    return filter === 'all' 
-      ? chennaiLocations 
+    return filter === 'all'
+      ? chennaiLocations
       : chennaiLocations.filter(loc => loc.type === filter);
   }, [filter]);
 
   const toggleLocationSelection = (id: string) => {
-    setSelectedLocations(prev => 
-      prev.includes(id) 
+    setSelectedLocations(prev =>
+      prev.includes(id)
         ? prev.filter(l => l !== id)
-        : prev.length < 3 
+        : prev.length < 3
           ? [...prev, id]
           : prev
     );
@@ -69,17 +60,16 @@ export default function BestTimes() {
         >
           <ScrollArea className="w-full">
             <div className="flex gap-2 pb-2">
-              {filterOptions.map((option) => (
+              {locationTypeFilters.map((option) => (
                 <button
                   key={option.value}
-                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                    filter === option.value
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary hover:bg-secondary/80 text-foreground'
-                  }`}
-                  onClick={() => setFilter(option.value)}
+                  className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === option.value
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary hover:bg-secondary/80 text-foreground'
+                    }`}
+                  onClick={() => setFilter(option.value as FilterType)}
                 >
-                  <span>{option.emoji}</span>
+                  <LocationTypeIcon type={option.value} size={16} />
                   <span>{option.label}</span>
                 </button>
               ))}
@@ -96,7 +86,7 @@ export default function BestTimes() {
           >
             <div className="flex items-center justify-between mb-4">
               <h3 className="font-semibold">Compare Peak Times</h3>
-              <button 
+              <button
                 className="text-sm text-muted-foreground hover:text-foreground"
                 onClick={() => setSelectedLocations([])}
               >
@@ -107,7 +97,7 @@ export default function BestTimes() {
               {comparisonLocations.map((location) => (
                 <div key={location.id} className="bg-secondary/50 rounded-xl p-4">
                   <div className="flex items-center gap-2 mb-3">
-                    <span className="text-xl">{getLocationTypeIcon(location.type)}</span>
+                    <LocationTypeIcon type={location.type} size={20} className="text-foreground" />
                     <span className="font-medium text-sm truncate">{location.name}</span>
                   </div>
                   <PopularTimesChart data={location.popularTimes} />
@@ -122,9 +112,8 @@ export default function BestTimes() {
           {filteredLocations.map((location, index) => (
             <motion.div
               key={location.id}
-              className={`glass-card-hover overflow-hidden cursor-pointer ${
-                selectedLocations.includes(location.id) ? 'ring-2 ring-primary' : ''
-              }`}
+              className={`glass-card-hover overflow-hidden cursor-pointer ${selectedLocations.includes(location.id) ? 'ring-2 ring-primary' : ''
+                }`}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
@@ -132,9 +121,11 @@ export default function BestTimes() {
             >
               <div className="p-4">
                 {/* Header */}
-                <div className="flex items-start justify-between gap-2 mb-4">
+                <div className="flex items-start justify-between gap-2 mb-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-2xl">{getLocationTypeIcon(location.type)}</span>
+                    <div className="w-9 h-9 rounded-lg bg-secondary/80 flex items-center justify-center">
+                      <LocationTypeIcon type={location.type} size={18} className="text-foreground" />
+                    </div>
                     <div>
                       <h3 className="font-semibold text-sm">{location.name}</h3>
                       <p className="text-xs text-muted-foreground">{location.address}</p>
@@ -143,13 +134,13 @@ export default function BestTimes() {
                   <CrowdBadge level={location.crowdLevel} size="sm" showPulse={false} />
                 </div>
 
-                {/* Mini Chart */}
-                <div className="h-16 mb-3 opacity-70">
-                  <PopularTimesChart data={location.popularTimes} />
+                {/* Mini Chart - compact mode */}
+                <div className="h-14 mb-3">
+                  <PopularTimesChart data={location.popularTimes} compact />
                 </div>
 
-                {/* Best Time */}
-                <div className="flex items-center justify-between border-t border-border/50 pt-3">
+                {/* Best Time - separate section with clear border */}
+                <div className="flex items-center justify-between border-t border-border/50 pt-3 mt-2">
                   <div className="flex items-center gap-1.5 text-xs">
                     <Clock className="w-3.5 h-3.5 text-crowd-low" />
                     <span className="text-muted-foreground">Best:</span>
@@ -162,11 +153,10 @@ export default function BestTimes() {
                       toggleLocationSelection(location.id);
                     }}
                   >
-                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                      selectedLocations.includes(location.id)
-                        ? 'bg-primary border-primary'
-                        : 'border-border'
-                    }`}>
+                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${selectedLocations.includes(location.id)
+                      ? 'bg-primary border-primary'
+                      : 'border-border'
+                      }`}>
                       {selectedLocations.includes(location.id) && (
                         <svg className="w-3 h-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />

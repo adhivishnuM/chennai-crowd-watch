@@ -1,29 +1,32 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
-  LayoutDashboard, 
-  MapPin, 
-  Video, 
-  Upload, 
-  BarChart3, 
-  Settings, 
+import {
+  LayoutDashboard,
+  MapPin,
+  Video,
+  Upload,
+  BarChart3,
+  Settings,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Globe
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AdminDashboard from './admin/AdminDashboard';
 import AdminLocations from './admin/AdminLocations';
 import AdminCameras from './admin/AdminCameras';
+import AdminLiveCCTV from './admin/AdminLiveCCTV';
 import AdminVideoUpload from './admin/AdminVideoUpload';
 import AdminAnalytics from './admin/AdminAnalytics';
 import AdminSettings from './admin/AdminSettings';
 
-type AdminPage = 'dashboard' | 'locations' | 'cameras' | 'upload' | 'analytics' | 'settings';
+type AdminPage = 'dashboard' | 'locations' | 'cameras' | 'live-cctv' | 'upload' | 'analytics' | 'settings';
 
-const navItems: { id: AdminPage; label: string; icon: typeof LayoutDashboard }[] = [
+const navItems: { id: AdminPage; label: string; icon: typeof LayoutDashboard; highlight?: boolean }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { id: 'locations', label: 'Locations', icon: MapPin },
-  { id: 'cameras', label: 'Live Cameras', icon: Video },
+  { id: 'cameras', label: 'Local Camera', icon: Video },
+  { id: 'live-cctv', label: 'Live CCTV', icon: Globe, highlight: true },
   { id: 'upload', label: 'Video Upload', icon: Upload },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'settings', label: 'Settings', icon: Settings },
@@ -41,6 +44,8 @@ export default function AdminPanel() {
         return <AdminLocations />;
       case 'cameras':
         return <AdminCameras />;
+      case 'live-cctv':
+        return <AdminLiveCCTV />;
       case 'upload':
         return <AdminVideoUpload />;
       case 'analytics':
@@ -69,10 +74,12 @@ export default function AdminPanel() {
             <motion.button
               key={item.id}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors",
+                "w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors relative",
                 activePage === item.id
                   ? "bg-primary text-primary-foreground"
-                  : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  : item.highlight
+                    ? "text-primary hover:text-primary hover:bg-primary/10 border border-primary/30"
+                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
               )}
               onClick={() => setActivePage(item.id)}
               whileHover={{ x: 2 }}
@@ -80,6 +87,11 @@ export default function AdminPanel() {
             >
               <item.icon className="w-5 h-5 flex-shrink-0" />
               {!sidebarCollapsed && <span>{item.label}</span>}
+              {item.highlight && !sidebarCollapsed && activePage !== item.id && (
+                <span className="ml-auto text-[10px] font-bold bg-primary text-primary-foreground px-1.5 py-0.5 rounded-full">
+                  NEW
+                </span>
+              )}
             </motion.button>
           ))}
         </nav>
@@ -98,7 +110,7 @@ export default function AdminPanel() {
       </motion.aside>
 
       {/* Main Content */}
-      <main 
+      <main
         className={cn(
           "flex-1 transition-all duration-300",
           sidebarCollapsed ? "ml-16" : "ml-60"

@@ -7,19 +7,10 @@ import { chennaiLocations, Location } from '@/data/mockLocations';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNavigate } from 'react-router-dom';
+import { LocationTypeIcon, locationTypeFilters } from './LocationTypeIcon';
 
-type FilterType = 'all' | 'mall' | 'beach' | 'park' | 'transit' | 'market' | 'museum';
+type FilterType = 'all' | 'mall' | 'foodcourt' | 'park' | 'transit' | 'market' | 'museum' | 'toll';
 type SortType = 'crowd' | 'distance' | 'name';
-
-const filterOptions: { value: FilterType; label: string; emoji: string }[] = [
-  { value: 'all', label: 'All', emoji: '📍' },
-  { value: 'mall', label: 'Malls', emoji: '🏬' },
-  { value: 'beach', label: 'Beaches', emoji: '🏖️' },
-  { value: 'park', label: 'Parks', emoji: '🌳' },
-  { value: 'transit', label: 'Transit', emoji: '🚉' },
-  { value: 'market', label: 'Markets', emoji: '🛒' },
-  { value: 'museum', label: 'Museums', emoji: '🏛️' },
-];
 
 export function MapDashboard() {
   const navigate = useNavigate();
@@ -30,8 +21,8 @@ export function MapDashboard() {
   const [showListMobile, setShowListMobile] = useState(false);
 
   const filteredLocations = useMemo(() => {
-    let filtered = filter === 'all' 
-      ? chennaiLocations 
+    let filtered = filter === 'all'
+      ? chennaiLocations
       : chennaiLocations.filter(loc => loc.type === filter);
 
     // Sort
@@ -65,11 +56,11 @@ export function MapDashboard() {
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col lg:flex-row relative">
       {/* Map */}
-      <motion.div 
+      <motion.div
         className="flex-1 relative"
         layout
       >
-        <CrowdMap 
+        <CrowdMap
           locations={filteredLocations}
           onLocationSelect={handleLocationClick}
           selectedLocation={selectedLocation}
@@ -77,7 +68,7 @@ export function MapDashboard() {
 
         {/* Quick Stats Overlay */}
         <div className="absolute top-4 left-4 right-4 lg:right-auto flex gap-2 z-10">
-          <motion.div 
+          <motion.div
             className="glass-card px-3 py-2 flex items-center gap-2"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -86,7 +77,7 @@ export function MapDashboard() {
             <span className="w-2 h-2 rounded-full bg-crowd-low" />
             <span className="text-sm font-medium">{crowdStats.low} Low</span>
           </motion.div>
-          <motion.div 
+          <motion.div
             className="glass-card px-3 py-2 flex items-center gap-2"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -95,7 +86,7 @@ export function MapDashboard() {
             <span className="w-2 h-2 rounded-full bg-crowd-medium" />
             <span className="text-sm font-medium">{crowdStats.medium} Medium</span>
           </motion.div>
-          <motion.div 
+          <motion.div
             className="glass-card px-3 py-2 flex items-center gap-2"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -119,9 +110,8 @@ export function MapDashboard() {
 
       {/* Side Panel - Desktop */}
       <motion.div
-        className={`hidden lg:flex flex-col border-l border-border/50 bg-background/95 backdrop-blur-lg ${
-          panelExpanded ? 'w-[400px]' : 'w-0'
-        }`}
+        className={`hidden lg:flex flex-col border-l border-border/50 bg-background/95 backdrop-blur-lg ${panelExpanded ? 'w-[400px]' : 'w-0'
+          }`}
         initial={false}
         animate={{ width: panelExpanded ? 400 : 0 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
@@ -136,17 +126,16 @@ export function MapDashboard() {
               </div>
               <ScrollArea className="w-full">
                 <div className="flex gap-2 pb-2">
-                  {filterOptions.map((option) => (
+                  {locationTypeFilters.map((option) => (
                     <button
                       key={option.value}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                        filter === option.value
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-secondary hover:bg-secondary/80 text-foreground'
-                      }`}
-                      onClick={() => setFilter(option.value)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === option.value
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary hover:bg-secondary/80 text-foreground'
+                        }`}
+                      onClick={() => setFilter(option.value as FilterType)}
                     >
-                      <span>{option.emoji}</span>
+                      <LocationTypeIcon type={option.value} size={16} />
                       <span>{option.label}</span>
                     </button>
                   ))}
@@ -193,21 +182,20 @@ export function MapDashboard() {
             <div className="p-4">
               {/* Handle */}
               <div className="w-12 h-1 bg-border rounded-full mx-auto mb-4" />
-              
+
               {/* Filter */}
               <ScrollArea className="w-full mb-4">
                 <div className="flex gap-2">
-                  {filterOptions.map((option) => (
+                  {locationTypeFilters.map((option) => (
                     <button
                       key={option.value}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                        filter === option.value
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-secondary hover:bg-secondary/80 text-foreground'
-                      }`}
-                      onClick={() => setFilter(option.value)}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === option.value
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary hover:bg-secondary/80 text-foreground'
+                        }`}
+                      onClick={() => setFilter(option.value as FilterType)}
                     >
-                      <span>{option.emoji}</span>
+                      <LocationTypeIcon type={option.value} size={16} />
                       <span>{option.label}</span>
                     </button>
                   ))}
