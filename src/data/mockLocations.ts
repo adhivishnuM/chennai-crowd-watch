@@ -14,6 +14,7 @@ export interface Location {
   bestTime: string;
   popularTimes: { hour: string; crowdLevel: number; label: string | null }[];
   distance?: string;
+  forceHigh?: boolean;
 }
 
 // Operating hours per location type (for logical best time calculation)
@@ -181,7 +182,7 @@ function getBestTimeToVisit(popularTimes: { hour: string; crowdLevel: number }[]
 const baseLocations = [
   // ============ MALLS (12) ============
   { id: '1', name: 'Express Avenue Mall', address: 'Anna Salai, Royapettah', lat: 13.0569, lng: 80.2633, type: 'mall', capacity: 5000, distance: '2.3 km' },
-  { id: '2', name: 'Phoenix MarketCity', address: 'Velachery Main Road', lat: 12.9941, lng: 80.2187, type: 'mall', capacity: 8000, distance: '5.1 km' },
+  { id: '2', name: 'Phoenix MarketCity', address: 'Velachery Main Road', lat: 12.9941, lng: 80.2187, type: 'mall', capacity: 8000, distance: '5.1 km', forceHigh: true },
   { id: '3', name: 'VR Chennai', address: 'Anna Nagar, 2nd Avenue', lat: 13.0878, lng: 80.2089, type: 'mall', capacity: 6000, distance: '4.7 km' },
   { id: '4', name: 'Spencer Plaza', address: 'Anna Salai', lat: 13.0619, lng: 80.2662, type: 'mall', capacity: 5000, distance: '1.5 km' },
   { id: '5', name: 'Palladium Mall', address: 'Velachery', lat: 12.9785, lng: 80.2201, type: 'mall', capacity: 4000, distance: '6.0 km' },
@@ -265,7 +266,13 @@ const baseLocations = [
 ] as const;
 
 export const chennaiLocations: Location[] = baseLocations.map(loc => {
-  const currentCount = generateCrowdCount(loc.capacity, loc.type, loc.id);
+  let currentCount = generateCrowdCount(loc.capacity, loc.type, loc.id);
+
+  // Force high crowd for specific demo locations
+  if ((loc as any).forceHigh) {
+    currentCount = Math.floor(loc.capacity * 0.95); // 95% full
+  }
+
   const crowdData = getCrowdLevel(currentCount, loc.capacity);
   const popularTimes = generatePopularTimes(loc.type, loc.id);
 

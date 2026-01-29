@@ -10,12 +10,15 @@ import time
 from services.detector import ObjectDetector
 from typing import Optional, Dict, Any, Generator
 import queue
-
+import os
+import json
+import uuid
 
 # List of REAL publicly available camera streams for crowd detection
 # User requested removal of all public cameras to focus on Custom URL feature
 PUBLIC_CAMERAS = []
 
+SAVED_CAMERAS_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "saved_cameras.json")
 
 class RTSPCameraService:
     """Service for connecting to RTSP/HLS camera streams and processing with YOLO"""
@@ -25,10 +28,78 @@ class RTSPCameraService:
         self.active_streams: Dict[str, Dict[str, Any]] = {}
         self.frame_queue: Dict[str, queue.Queue] = {}
         self.stop_events: Dict[str, threading.Event] = {}
+        self._ensure_data_file()
+        
+    def _ensure_data_file(self):
+        """Ensure the saved cameras file exists"""
+        try:
+            if not os.path.exists(os.path.dirname(SAVED_CAMERAS_FILE)):
+                os.makedirs(os.path.dirname(SAVED_CAMERAS_FILE))
+            if not os.path.exists(SAVED_CAMERAS_FILE):
+                with open(SAVED_CAMERAS_FILE, 'w') as f:
+                    json.dump([], f)
+        except Exception as e:
+            print(f"Error initializing data file: {e}")
+
+    def get_saved_cameras(self) -> list:
+        """Get list of user-saved cameras"""
+        try:
+            if os.path.exists(SAVED_CAMERAS_FILE):
+                with open(SAVED_CAMERAS_FILE, 'r') as f:
+                    return json.load(f)
+            return []
+        except Exception as e:
+            print(f"Error loading saved cameras: {e}")
+            return []
+
+    def save_camera(self, camera_data: dict) -> dict:
+        """Save a new camera"""
+        cameras = self.get_saved_cameras()
+        new_cam = {
+            "id": str(uuid.uuid4()),
+            "name": camera_data.get("name", "Unnamed Camera"),
+            "url": camera_data.get("url"),
+            "location": camera_data.get("location", "Custom"),
+            "type": "custom",
+            "description": camera_data.get("description", ""),
+            "created_at": time.time()
+        }
+        cameras.append(new_cam)
+        with open(SAVED_CAMERAS_FILE, 'w') as f:
+            json.dump(cameras, f, indent=2)
+        return new_cam
+
+    def delete_camera(self, camera_id: str) -> bool:
+        """Delete a saved camera"""
+        cameras = self.get_saved_cameras()
+        initial_len = len(cameras)
+        cameras = [c for c in cameras if c['id'] != camera_id]
+        if len(cameras) != initial_len:
+            with open(SAVED_CAMERAS_FILE, 'w') as f:
+                json.dump(cameras, f, indent=2)
+            return True
+        return False
+
+    def update_camera(self, camera_id: str, updates: dict) -> bool:
+        """Update a saved camera"""
+        cameras = self.get_saved_cameras()
+        found = False
+        for cam in cameras:
+            if cam['id'] == camera_id:
+                cam.update(updates)
+                found = True
+                break
+        if found:
+            with open(SAVED_CAMERAS_FILE, 'w') as f:
+                json.dump(cameras, f, indent=2)
+        return True
         
     def get_available_cameras(self) -> list:
-        """Return list of available public cameras"""
-        return PUBLIC_CAMERAS
+        """Return list of available public cameras + saved cameras"""
+        saved = self.get_saved_cameras()
+        # Add dynamic fields
+        all_cameras = PUBLIC_CAMERAS + saved
+        return all_cameras
     
     def _get_youtube_stream_url(self, youtube_url: str) -> Optional[str]:
         """
@@ -281,7 +352,10 @@ class RTSPCameraService:
                 "type": "custom"
             }
         else:
-            for cam in PUBLIC_CAMERAS:
+
+            # Check all available cameras (public + saved)
+            all_cams = self.get_available_cameras()
+            for cam in all_cams:
                 if cam["id"] == camera_id:
                     camera_info = cam
                     break

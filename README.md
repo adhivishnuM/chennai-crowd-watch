@@ -38,7 +38,7 @@ The system leverages **Computer Vision (YOLOv8)** to analyze video feeds in real
 ### 🌍 For Public Users
 *   **Interactive Map:** A dynamic Leaflet-based map displaying key locations across Chennai with custom markers indicating crowd density.
 *   **Real-Time Status:** Instant visual cues (Green/Yellow/Red) representing Low, Medium, and High crowd levels.
-*   **Smart Recommendations:** AI-driven "Best Time to Visit" suggestions based on historical and current data.
+*   **Smart Recommendations:** Algorithm-driven "Best Time to Visit" suggestions based on historical and current data.
 *   **Data Visualization:** Interactive charts showing popular times and crowd trends using Recharts.
 *   **Search Functionality:** easy-to-use search bar to find specific malls, parks, or beaches.
 
@@ -56,7 +56,7 @@ The application follows a modern **Client-Server architecture**:
 
 *   **Frontend:** A Single Page Application (SPA) built with React and TypeScript, communicating with the backend via REST APIs and WebSockets.
 *   **Backend:** A high-performance FastAPI server that handles API requests, manages WebSocket connections for real-time updates, and runs the YOLOv8 inference engine.
-*   **AI Engine:** Ultralytics YOLOv8 model optimized for person detection, processing video frames to count individuals.
+*   **Vision Engine:** Ultralytics YOLOv8 model optimized for person detection, processing video frames to count individuals.
 
 ---
 
@@ -73,15 +73,19 @@ The application follows a modern **Client-Server architecture**:
 | **State Mgmt** | React Query | Powerful data synchronization and caching. |
 | **Animations** | Framer Motion | Production-ready animation library. |
 | **Charts** | Recharts | Composable charting library. |
+| **Notifications** | Sonner | Sleek toast notifications. |
+| **Validation** | Zod & Hook Form | Schema-driven form management. |
 
 ### Backend
 | Component | Technology | Description |
 | :--- | :--- | :--- |
 | **Framework** | FastAPI | High-performance Python web framework. |
 | **Language** | Python 3.9+ | Primary backend language. |
-| **AI Model** | YOLOv8 | State-of-the-art object detection model. |
+| **Vision Model** | YOLOv8 | State-of-the-art object detection model. |
 | **Vision** | OpenCV | Library for real-time computer vision. |
 | **Real-time** | WebSockets | Full-duplex communication channels. |
+| **Stream Extraction**| yt-dlp | High-performance YouTube stream handling. |
+| **File Handling** | python-multipart| Support for video file uploads. |
 
 ---
 

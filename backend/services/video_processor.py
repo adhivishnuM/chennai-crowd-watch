@@ -17,6 +17,7 @@ class VideoProcessor:
         path = os.path.join(self.upload_dir, f"{file_id}_{filename}")
         with open(path, "wb") as f:
             f.write(file_content)
+        print(f"Video saved to: {path}, Size: {os.path.getsize(path)} bytes")
         return file_id, path
 
     async def process_video(self, file_id, file_path, frame_skip=15):
@@ -41,6 +42,7 @@ class VideoProcessor:
         
         cap = cv2.VideoCapture(file_path)
         if not cap.isOpened():
+            print(f"Error: Could not open video file at {file_path}")
             self.active_processings[file_id]["status"] = "error"
             self.active_processings[file_id]["error"] = "Could not open video file"
             return
@@ -122,10 +124,16 @@ class VideoProcessor:
             with open(json_path, "w") as f:
                 json.dump(results, f)
             
+            # Release video capture before deleting file (Critical for Windows)
+            cap.release()
+
             # DELETE VIDEO FILE TO SAVE SPACE
-            if os.path.exists(file_path):
-                os.remove(file_path)
-                print(f"Deleted video file: {file_path}")
+            try:
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+                    print(f"Deleted video file: {file_path}")
+            except Exception as e:
+                print(f"Warning: Could not delete video file {file_path}: {e}")
             
         except Exception as e:
             print(f"Error processing video {file_id}: {e}")
@@ -200,8 +208,14 @@ class VideoProcessor:
 
         return None
 
-# Initialize with path relative to project root, not backend directory
-_project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-_uploads_path = os.path.join(_project_root, "uploads")
+# Initialize with path from env or relative to project root
+_env_upload_dir = os.getenv("UPLOAD_DIR")
+if _env_upload_dir:
+    _uploads_path = _env_upload_dir
+else:
+    # Fallback to calculated path
+    _project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    _uploads_path = os.path.join(_project_root, "uploads")
+
 video_processor = VideoProcessor(upload_dir=_uploads_path)
 

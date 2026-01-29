@@ -54,7 +54,7 @@ export function Navbar() {
 
   return (
     <motion.nav
-      className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-border/50"
+      className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-zinc-200"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
@@ -66,40 +66,38 @@ export function Navbar() {
             onClick={handleLogoClick}
             className="cursor-pointer"
           >
-            <motion.div
-              className="flex items-center gap-2"
-              whileHover={{ scale: 1.02 }}
-            >
-              <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-                <MapPin className="w-5 h-5 text-primary-foreground" />
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <div className="relative w-9 h-9 rounded-xl bg-zinc-950 flex items-center justify-center overflow-hidden">
+                  <MapPin className="w-5 h-5 text-white" />
+                </div>
               </div>
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
-                  <span className="font-bold text-lg leading-none">Crowdex</span>
-                  <div className="hidden xs:flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-secondary/80 text-[10px] font-mono font-medium">
-                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  <span className="font-black text-xl tracking-tighter text-zinc-950 uppercase italic">Crowdex</span>
+                  <div className="hidden xs:flex items-center gap-2 px-2.5 py-1 rounded-full bg-zinc-100 border border-zinc-200 text-[10px] font-black text-zinc-500 font-mono tracking-tighter shadow-sm">
+                    <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse shadow-[0_0_5px_rgba(239,68,68,0.5)]" />
                     {timeString}
                   </div>
                 </div>
-                <span className="text-[10px] text-muted-foreground leading-none hidden sm:block">
+                <span className="text-[9px] font-bold text-zinc-400 uppercase tracking-widest leading-none hidden sm:block">
                   Know Before You Go
                 </span>
               </div>
-            </motion.div>
+            </div>
           </div>
 
           {/* Center - Navigation (Desktop) - ONLY SHOW IN PUBLIC MODE */}
           {mode === 'public' && (
-            <div className="hidden lg:flex items-center gap-1">
-              <NavLink to="/" end className="px-4 py-2 rounded-lg text-sm font-medium">Map</NavLink>
-              <NavLink to="/transport" className="px-4 py-2 rounded-lg text-sm font-medium">Transport</NavLink>
-              <NavLink to="/best-times" className="px-4 py-2 rounded-lg text-sm font-medium">Best Times</NavLink>
-              <NavLink to="/alerts" className="px-4 py-2 rounded-lg text-sm font-medium">Alerts</NavLink>
+            <div className="hidden lg:flex items-center bg-zinc-100/50 p-1.5 rounded-2xl border border-zinc-200 shadow-inner">
+              <NavLink to="/" end className="px-6 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all hover:bg-white hover:shadow-sm">Map</NavLink>
+              <NavLink to="/transport" className="px-6 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all hover:bg-white hover:shadow-sm">Transport</NavLink>
+              <NavLink to="/best-times" className="px-6 py-1.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all hover:bg-white hover:shadow-sm">Optimization</NavLink>
             </div>
           )}
 
           {/* Right - Search & Profile */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             <div className="hidden md:flex">
               <ModeToggle />
             </div>
@@ -108,33 +106,32 @@ export function Navbar() {
               <motion.div
                 className="relative hidden sm:block"
                 initial={false}
-                animate={{ width: searchOpen ? 300 : 40 }}
+                animate={{ width: searchOpen ? 300 : 44 }}
                 transition={{ type: 'spring', stiffness: 300, damping: 25 }}
               >
                 {searchOpen ? (
                   <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500" />
                     <Input
-                      placeholder="Search locations..."
-                      className="pl-9 pr-9 bg-secondary/50"
+                      placeholder="Search Monitoring Network..."
+                      className="h-11 pl-11 pr-11 bg-zinc-100 border-none rounded-2xl text-sm font-medium focus-visible:ring-primary/20 shadow-inner"
                       autoFocus
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       onBlur={() => {
-                        // Small delay to allow clicking results
                         setTimeout(() => {
                           if (!searchQuery) setSearchOpen(false);
                         }, 200);
                       }}
                     />
                     <button
-                      className="absolute right-3 top-1/2 -translate-y-1/2"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 flex items-center justify-center rounded-lg hover:bg-zinc-200 transition-colors"
                       onClick={() => {
                         setSearchOpen(false);
                         setSearchQuery('');
                       }}
                     >
-                      <X className="w-4 h-4 text-muted-foreground" />
+                      <X className="w-3.5 h-3.5 text-zinc-500" />
                     </button>
 
                     {/* Search Results Dropdown */}

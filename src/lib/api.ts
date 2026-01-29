@@ -1,5 +1,9 @@
-export const API_BASE_URL = "http://localhost:8000/api";
-export const WS_BASE_URL = "ws://localhost:8000/ws";
+// Use environment variable if available, otherwise fallback to localhost
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const CLEAN_BASE_URL = BASE_URL.replace(/\/$/, "");
+
+export const API_BASE_URL = `${CLEAN_BASE_URL}/api`;
+export const WS_BASE_URL = `${CLEAN_BASE_URL.replace(/^http/, "ws")}/ws`;
 
 export async function uploadVideo(file: File, frameSkip: number = 15): Promise<{ id: string; status: string; frame_skip: number }> {
     const formData = new FormData();

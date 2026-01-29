@@ -17,11 +17,27 @@ class StartStreamRequest(BaseModel):
     custom_url: Optional[str] = None
 
 
+class CreateCameraRequest(BaseModel):
+    name: str
+    url: str
+    location: Optional[str] = "Custom"
+    description: Optional[str] = ""
+
+class UpdateCameraRequest(BaseModel):
+    name: Optional[str] = None
+    url: Optional[str] = None
+    location: Optional[str] = None
+    description: Optional[str] = None
+
+
 @router.get("/cameras")
 async def get_available_cameras():
     """Get list of available public CCTV cameras"""
     cameras = []
-    for cam in PUBLIC_CAMERAS:
+    # Get all cameras (public + saved)
+    all_cams = rtsp_camera_service.get_available_cameras()
+    
+    for cam in all_cams:
         # Check if stream is active
         status = rtsp_camera_service.get_stream_status(cam["id"])
         cameras.append({
@@ -30,6 +46,30 @@ async def get_available_cameras():
             "uptime": status["uptime"] if status else 0
         })
     return {"cameras": cameras}
+
+
+@router.post("/saved")
+async def save_camera(request: CreateCameraRequest):
+    """Save a new custom camera"""
+    return rtsp_camera_service.save_camera(request.dict())
+
+
+@router.delete("/saved/{camera_id}")
+async def delete_camera(camera_id: str):
+    """Delete a saved camera"""
+    success = rtsp_camera_service.delete_camera(camera_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Camera not found")
+    return {"status": "deleted", "id": camera_id}
+
+
+@router.put("/saved/{camera_id}")
+async def update_camera(camera_id: str, request: UpdateCameraRequest):
+    """Update a saved camera"""
+    success = rtsp_camera_service.update_camera(camera_id, request.dict(exclude_unset=True))
+    if not success:
+        raise HTTPException(status_code=404, detail="Camera not found")
+    return {"status": "updated", "id": camera_id}
 
 
 @router.post("/stream/start")
@@ -78,7 +118,13 @@ async def websocket_rtsp_stream(websocket: WebSocket, camera_id: str):
     print(f"[WS] Client connected for camera: {camera_id}")
     
     # Start stream if not already active
+    # Check if it's a known camera (saved or public) or needs custom URL logic (which should be handled by start_stream mostly)
+    # If it is a saved camera that hasn't started, we try to start it.
+    
     if not rtsp_camera_service.get_stream_status(camera_id):
+        # We try simple start. If it logic requires a custom URL not in the saved/public list, 
+        # it would have failed before reaching here usually, or we need to pass URL.
+        # But for saved cameras, the service knows the URL.
         rtsp_camera_service.start_stream(camera_id)
     
     # Wait a bit for stream to initialize

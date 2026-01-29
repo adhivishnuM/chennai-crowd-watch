@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import { motion } from 'framer-motion';
@@ -12,59 +12,6 @@ import { useMode } from '@/context/ModeContext';
 // Chennai center coordinates
 const CHENNAI_CENTER: [number, number] = [13.0500, 80.2500];
 const DEFAULT_ZOOM = 12;
-
-// Create custom pulsing markers
-const createPulsingIcon = (level: CrowdLevel) => {
-  const colors = {
-    low: '#10B981',
-    medium: '#F59E0B',
-    high: '#EF4444',
-  };
-
-  const color = colors[level];
-
-  return L.divIcon({
-    className: 'custom-marker',
-    html: `
-      <div style="position: relative; width: 24px; height: 24px;">
-        <div style="
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 16px;
-          height: 16px;
-          background: ${color};
-          border-radius: 50%;
-          border: 3px solid white;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-          z-index: 2;
-        "></div>
-        <div style="
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          width: 24px;
-          height: 24px;
-          background: ${color};
-          border-radius: 50%;
-          opacity: 0.3;
-          animation: pulse-ring 1.5s ease-out infinite;
-        "></div>
-      </div>
-      <style>
-        @keyframes pulse-ring {
-          0% { transform: translate(-50%, -50%) scale(1); opacity: 0.3; }
-          100% { transform: translate(-50%, -50%) scale(2); opacity: 0; }
-        }
-      </style>
-    `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-    popupAnchor: [0, -12],
-  });
-};
 
 interface MapRecenterProps {
   lat: number;
@@ -82,10 +29,11 @@ function MapRecenter({ lat, lng }: MapRecenterProps) {
 interface CrowdMapProps {
   locations: Location[];
   onLocationSelect?: (location: Location) => void;
+  onNavigate?: (location: Location) => void;
   selectedLocation?: Location | null;
 }
 
-export function CrowdMap({ locations, onLocationSelect, selectedLocation }: CrowdMapProps) {
+export function CrowdMap({ locations, onLocationSelect, onNavigate, selectedLocation }: CrowdMapProps) {
   const mapRef = useRef<L.Map>(null);
   const { mode } = useMode();
 
@@ -97,6 +45,28 @@ export function CrowdMap({ locations, onLocationSelect, selectedLocation }: Crow
     };
     return icons[trend];
   };
+
+  // Memoize icons to prevent re-creation on every render
+  const icons = useMemo(() => {
+    const createIcon = (color: string) => L.divIcon({
+      className: 'custom-marker',
+      html: `
+        <div class="map-marker-container">
+          <div class="map-marker-dot" style="background: ${color};"></div>
+          <div class="map-marker-pulse" style="background: ${color};"></div>
+        </div>
+      `,
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+      popupAnchor: [0, -12],
+    });
+
+    return {
+      low: createIcon('#10B981'),
+      medium: createIcon('#F59E0B'),
+      high: createIcon('#EF4444'),
+    };
+  }, []);
 
   return (
     <div className="w-full h-full rounded-2xl overflow-hidden shadow-glass">
@@ -124,17 +94,13 @@ export function CrowdMap({ locations, onLocationSelect, selectedLocation }: Crow
             <Marker
               key={location.id}
               position={[location.lat, location.lng]}
-              icon={createPulsingIcon(location.crowdLevel)}
+              icon={icons[location.crowdLevel]}
               eventHandlers={{
                 click: () => onLocationSelect?.(location),
               }}
             >
               <Popup className="custom-popup">
-                <motion.div
-                  className="p-4 min-w-[240px]"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                >
+                <div className="p-4 min-w-[240px]">
                   <div className="flex items-start justify-between gap-2 mb-3">
                     <div>
                       <h3 className="font-semibold text-foreground">{location.name}</h3>
@@ -142,6 +108,20 @@ export function CrowdMap({ locations, onLocationSelect, selectedLocation }: Crow
                     </div>
                     <CrowdBadge level={location.crowdLevel} size="sm" />
                   </div>
+
+                  {location.crowdLevel === 'high' && (
+                    <div className="mb-3 p-2 bg-destructive/10 border border-destructive/20 rounded-lg">
+                      <div className="flex items-start gap-2">
+                        <div className="mt-0.5 text-destructive">⚠️</div>
+                        <div>
+                          <p className="text-xs font-semibold text-destructive">High Density Zone</p>
+                          <p className="text-[10px] text-destructive/80 leading-tight mt-0.5">
+                            Public Safety Redirect Active: Please avoid this area. Security monitoring intense.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
 
                   <div className="space-y-2 mb-3">
                     {mode === 'admin' && (
@@ -163,8 +143,8 @@ export function CrowdMap({ locations, onLocationSelect, selectedLocation }: Crow
                       <span className="text-muted-foreground">Trend</span>
                       <span className="flex items-center gap-1 capitalize">
                         <Icon className={`w-4 h-4 ${location.trend === 'rising' ? 'text-crowd-high' :
-                            location.trend === 'falling' ? 'text-crowd-low' :
-                              'text-muted-foreground'
+                          location.trend === 'falling' ? 'text-crowd-low' :
+                            'text-muted-foreground'
                           }`} />
                         {location.trend}
                       </span>
@@ -173,11 +153,11 @@ export function CrowdMap({ locations, onLocationSelect, selectedLocation }: Crow
 
                   <button
                     className="w-full py-2 px-4 bg-primary text-primary-foreground rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors"
-                    onClick={() => onLocationSelect?.(location)}
+                    onClick={() => onNavigate?.(location)}
                   >
                     View Details
                   </button>
-                </motion.div>
+                </div>
               </Popup>
             </Marker>
           );

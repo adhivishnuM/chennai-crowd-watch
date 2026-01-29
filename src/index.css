@@ -5,60 +5,62 @@
 @tailwind utilities;
 
 @layer base {
+  body {}
+
   :root {
-    /* Core Colors */
-    --background: 0 0% 100%;
-    --foreground: 220 13% 9%;
-    
-    /* Card with Glassmorphism */
+    /* Core Colors - Refined for Premium Feel */
+    --background: 210 40% 98%;
+    --foreground: 222 47% 11%;
+
+    /* Card with Enhanced Glassmorphism */
     --card: 0 0% 100%;
-    --card-foreground: 220 13% 9%;
-    
+    --card-foreground: 222 47% 11%;
+
     --popover: 0 0% 100%;
-    --popover-foreground: 220 13% 9%;
-    
-    /* Rich Black Primary */
-    --primary: 0 0% 4%;
-    --primary-foreground: 0 0% 100%;
-    
-    /* Soft Gray Secondary */
-    --secondary: 220 14% 96%;
-    --secondary-foreground: 220 13% 9%;
-    
-    --muted: 220 14% 96%;
-    --muted-foreground: 220 9% 46%;
-    
-    --accent: 220 14% 96%;
-    --accent-foreground: 220 13% 9%;
-    
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 0 0% 100%;
-    
-    --border: 220 13% 90%;
-    --input: 220 13% 90%;
-    --ring: 0 0% 4%;
-    
-    --radius: 1rem;
-    
-    /* Crowd Level Colors */
-    --crowd-low: 160 84% 39%;
-    --crowd-medium: 38 92% 50%;
+    --popover-foreground: 222 47% 11%;
+
+    /* Sharper Primary - Deep Indigo/Slate */
+    --primary: 222 47% 11%;
+    --primary-foreground: 210 40% 98%;
+
+    /* Soft Secondary - Subtle Blue-Grey */
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
+
+    --radius: 1.25rem;
+
+    /* Crowd Level Colors - More Vibrant */
+    --crowd-low: 142 71% 45%;
+    --crowd-medium: 37 95% 48%;
     --crowd-high: 0 84% 60%;
-    
-    /* Glass Effect */
-    --glass-bg: 0 0% 100% / 0.7;
-    --glass-border: 0 0% 100% / 0.3;
-    --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
-    
-    /* Sidebar */
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 220 9% 46%;
-    --sidebar-primary: 0 0% 4%;
+
+    /* Premium Glass Effect */
+    --glass-bg: 0 0% 100% / 0.8;
+    --glass-border: 214 32% 91% / 0.6;
+    --glass-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.12);
+
+    /* Sidebar - Refined */
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 16% 47%;
+    --sidebar-primary: 222 47% 11%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 14% 96%;
-    --sidebar-accent-foreground: 220 13% 9%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 0 0% 4%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91% / 0.5;
+    --sidebar-ring: 222 47% 11%;
   }
 }
 
@@ -66,19 +68,46 @@
   * {
     @apply border-border;
   }
-  
+
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
-  
+
+  /* Premium Global Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/10 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/30;
+  }
+
   /* Tabular figures for numbers */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
+
+  /* Selection style */
+  ::selection {
+    @apply bg-primary/10 text-primary;
+  }
 }
 
 @layer components {
+
   /* Glassmorphism Card */
   .glass-card {
     @apply rounded-2xl border backdrop-blur-xl;
@@ -86,66 +115,66 @@
     border-color: hsl(var(--glass-border));
     box-shadow: var(--glass-shadow);
   }
-  
+
   /* Glassmorphism Card Hover Effect */
   .glass-card-hover {
     @apply glass-card transition-all duration-300 ease-out;
   }
-  
+
   .glass-card-hover:hover {
     transform: translateY(-4px);
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
   }
-  
+
   /* Crowd Level Badges */
   .badge-low {
     @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
     background: hsl(160 84% 39% / 0.1);
     color: hsl(var(--crowd-low));
   }
-  
+
   .badge-medium {
     @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
     background: hsl(38 92% 50% / 0.1);
     color: hsl(var(--crowd-medium));
   }
-  
+
   .badge-high {
     @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
     background: hsl(0 84% 60% / 0.1);
     color: hsl(var(--crowd-high));
   }
-  
+
   /* Pulsing Indicator */
   .pulse-dot {
     @apply relative;
   }
-  
+
   .pulse-dot::after {
     content: '';
     @apply absolute inset-0 rounded-full animate-ping opacity-75;
     background: inherit;
   }
-  
+
   /* Map Marker Styles */
   .marker-low {
     @apply w-4 h-4 rounded-full;
     background: hsl(var(--crowd-low));
     box-shadow: 0 0 0 4px hsl(160 84% 39% / 0.2);
   }
-  
+
   .marker-medium {
     @apply w-4 h-4 rounded-full;
     background: hsl(var(--crowd-medium));
     box-shadow: 0 0 0 4px hsl(38 92% 50% / 0.2);
   }
-  
+
   .marker-high {
     @apply w-4 h-4 rounded-full;
     background: hsl(var(--crowd-high));
     box-shadow: 0 0 0 4px hsl(0 84% 60% / 0.2);
   }
-  
+
   /* Shimmer Loading Effect */
   .shimmer {
     @apply relative overflow-hidden;
@@ -153,24 +182,29 @@
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite;
   }
-  
+
   @keyframes shimmer {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+    0% {
+      background-position: 200% 0;
+    }
+
+    100% {
+      background-position: -200% 0;
+    }
   }
-  
+
   /* Smooth Page Transitions */
   .page-enter {
     opacity: 0;
     transform: translateY(10px);
   }
-  
+
   .page-enter-active {
     opacity: 1;
     transform: translateY(0);
     transition: opacity 300ms ease-out, transform 300ms ease-out;
   }
-  
+
   /* Mode Toggle */
   .mode-toggle {
     @apply relative flex items-center p-1 rounded-full;
@@ -178,49 +212,49 @@
     backdrop-filter: blur(20px);
     border: 1px solid hsl(var(--glass-border));
   }
-  
+
   .mode-toggle-option {
     @apply relative z-10 flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full transition-colors duration-300;
   }
-  
+
   .mode-toggle-option.active {
     @apply text-primary-foreground;
   }
-  
+
   .mode-toggle-option:not(.active) {
     @apply text-muted-foreground hover:text-foreground;
   }
-  
+
   .mode-toggle-slider {
     @apply absolute top-1 bottom-1 rounded-full bg-primary transition-all duration-300 ease-out;
   }
-  
+
   /* Stat Card */
   .stat-card {
     @apply glass-card p-6;
   }
-  
+
   .stat-value {
     @apply text-3xl font-bold tracking-tight tabular-nums;
   }
-  
+
   .stat-label {
     @apply text-sm text-muted-foreground mt-1;
   }
-  
+
   /* Custom Scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
     @apply w-2;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-track {
     @apply bg-transparent;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb {
     @apply bg-border rounded-full;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
     @apply bg-muted-foreground/30;
   }
@@ -256,4 +290,48 @@
 
 .leaflet-control-zoom a:hover {
   @apply bg-muted;
+}
+
+/* Optimized Map Parsers */
+@keyframes pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.3;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+.map-marker-pulse {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  opacity: 0.3;
+  animation: pulse-ring 1.5s ease-out infinite;
+}
+
+.map-marker-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 3px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 2;
+}
+
+.map-marker-container {
+  position: relative;
+  width: 24px;
+  height: 24px;
 }

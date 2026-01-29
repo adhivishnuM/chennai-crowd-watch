@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+﻿import { useEffect, useRef, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Video,
@@ -20,12 +20,17 @@ import {
     ChevronRight,
     Circle,
     AlertCircle,
-    CheckCircle2
+    CheckCircle2,
+    Plus,
+    Trash2,
+    Edit2,
+    Save,
+    X
 } from 'lucide-react';
+import { cn as clsxMerge } from '@/lib/utils';
 import CountUp from 'react-countup';
 import { Button } from '@/components/ui/button';
 import { API_BASE_URL, WS_BASE_URL } from '@/lib/api';
-import { cn } from '@/lib/utils';
 
 // Camera types for icons
 const cameraTypeIcons: Record<string, React.ReactNode> = {
@@ -69,6 +74,71 @@ export default function AdminLiveCCTV() {
     const [customUrl, setCustomUrl] = useState('');
     const [showCustomInput, setShowCustomInput] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [savedName, setSavedName] = useState('');
+    const [editingId, setEditingId] = useState<string | null>(null);
+    const [isSaving, setIsSaving] = useState(false);
+
+    // Save or Update Camera
+    const handleSaveCamera = async () => {
+        if (!customUrl.trim() || !savedName.trim()) return;
+
+        setIsSaving(true);
+        try {
+            const endpoint = editingId
+                ? `${API_BASE_URL}/rtsp/saved/${editingId}`
+                : `${API_BASE_URL}/rtsp/saved`;
+
+            const method = editingId ? 'PUT' : 'POST';
+
+            const response = await fetch(endpoint, {
+                method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    name: savedName,
+                    url: customUrl,
+                    location: 'Custom',
+                    description: 'User saved stream'
+                })
+            });
+
+            if (response.ok) {
+                setSavedName('');
+                setCustomUrl('');
+                setEditingId(null);
+                fetchCameras(); // Refresh list
+            }
+        } catch (err) {
+            console.error('Failed to save camera:', err);
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
+    // Delete Camera
+    const handleDeleteCamera = async (id: string) => {
+        if (!window.confirm('Are you sure you want to delete this stream?')) return;
+
+        try {
+            await fetch(`${API_BASE_URL}/rtsp/saved/${id}`, {
+                method: 'DELETE'
+            });
+            fetchCameras();
+
+            if (selectedCamera?.id === id) {
+                disconnectCamera();
+            }
+        } catch (err) {
+            console.error('Failed to delete camera:', err);
+        }
+    };
+
+    // Edit Camera
+    const handleEditCamera = (cam: PublicCamera) => {
+        setSavedName(cam.name);
+        setCustomUrl(cam.url);
+        setEditingId(cam.id);
+        setShowCustomInput(true);
+    };
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const wsRef = useRef<WebSocket | null>(null);
@@ -86,6 +156,7 @@ export default function AdminLiveCCTV() {
     }, []);
 
     useEffect(() => {
+        console.log('Admin Live CCTV Module Loaded - Version Check');
         fetchCameras();
 
         // Refresh camera list every 30s
@@ -266,236 +337,374 @@ export default function AdminLiveCCTV() {
     const crowdInfo = getCrowdLevel(currentCount);
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-w-[1600px] mx-auto">
             {/* Header */}
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 pb-2 border-b border-border/50">
                 <div>
-                    <h1 className="text-2xl font-bold flex items-center gap-3">
-                        <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5">
-                            <Globe className="w-6 h-6 text-primary" />
-                        </div>
-                        Live CCTV Detection
+                    <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground mb-1">
+                        <div className="w-2 h-2 rounded-full bg-primary" />
+                        Surveillance Control
+                    </div>
+                    <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
+                        Live CCTV Analysis
                     </h1>
-                    <p className="text-muted-foreground mt-1">
-                        Real-time crowd detection from public camera streams worldwide
-                    </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
+                    <div className="flex -space-x-2">
+                        {cameras.slice(0, 3).map((_, i) => (
+                            <div key={i} className="w-8 h-8 rounded-full border-2 border-background bg-secondary flex items-center justify-center">
+                                <Video className="w-3.5 h-3.5 text-muted-foreground" />
+                            </div>
+                        ))}
+                        {cameras.length > 3 && (
+                            <div className="w-8 h-8 rounded-full border-2 border-background bg-primary text-primary-foreground flex items-center justify-center text-[10px] font-bold">
+                                +{cameras.length - 3}
+                            </div>
+                        )}
+                    </div>
                     <Button
-                        variant="outline"
-                        size="sm"
+                        variant="ghost"
+                        size="icon"
                         onClick={fetchCameras}
-                        className="gap-2"
+                        className="rounded-full hover:bg-primary/5"
                     >
                         <RefreshCw className="w-4 h-4" />
-                        Refresh
                     </Button>
                 </div>
             </div>
 
-            {/* Custom URL Input - Always Visible */}
-            <div className="glass-card p-4">
-                <div className="flex flex-col sm:flex-row gap-3">
-                    <div className="flex-1 relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <ExternalLink className="h-4 w-4 text-muted-foreground" />
-                        </div>
-                        <input
-                            type="text"
-                            value={customUrl}
-                            onChange={(e) => setCustomUrl(e.target.value)}
-                            placeholder="Paste any YouTube URL or RTSP/HLS stream link here..."
-                            className="w-full pl-10 pr-4 py-2 bg-background/50 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/50"
-                        />
-                    </div>
-                    <Button onClick={connectToCustomUrl} disabled={!customUrl.trim() || isConnecting} className="min-w-[100px]">
-                        {isConnecting && customUrl ? 'Connecting...' : 'Connect URL'}
-                    </Button>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2 ml-1">
-                    Supports YouTube Live, standard YouTube videos (loops automatically), M3U8, and RTSP streams.
-                </p>
-            </div>
+            <div className="grid grid-cols-1 xl:grid-cols-12 gap-6">
+                {/* Left Column: Video Feed & Primary Stats */}
+                <div className="xl:col-span-8 space-y-6">
+                    {/* Main Video Player */}
+                    <div className="relative group">
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-primary/10 to-primary/5 rounded-[2rem] blur opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+                        <div className="relative glass-card overflow-hidden bg-black border-zinc-800 shadow-2xl">
+                            {/* Video Header / Toolbar */}
+                            <div className="absolute top-0 left-0 right-0 p-4 z-20 flex justify-between items-start pointer-events-none">
+                                <div className="flex flex-col gap-2 pointer-events-auto">
+                                    <div className={clsxMerge(
+                                        "flex items-center gap-2 px-3 py-1.5 rounded-full text-[10px] font-bold tracking-wider backdrop-blur-md border border-white/10",
+                                        isConnected ? "bg-red-500/20 text-red-500 border-red-500/20" : "bg-zinc-900/50 text-zinc-400"
+                                    )}>
+                                        <div className={clsxMerge(
+                                            "w-1.5 h-1.5 rounded-full",
+                                            isConnected ? "bg-red-500 animate-pulse" : "bg-zinc-500"
+                                        )} />
+                                        {isConnected ? 'SIGNAL ACTIVE' : isConnecting ? 'SYNCHRONIZING...' : 'NO SOURCE'}
+                                    </div>
 
-
-            <div className="space-y-6">
-                {/* Main Video Feed */}
-                <div className="space-y-4">
-                    <div className="glass-card overflow-hidden">
-                        {/* Video Header */}
-                        <div className="p-4 border-b border-border/50 flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                                <div className={cn(
-                                    "w-3 h-3 rounded-full",
-                                    isConnected ? "bg-green-500 animate-pulse" :
-                                        isConnecting ? "bg-yellow-500 animate-pulse" : "bg-gray-400"
-                                )} />
-                                <div>
-                                    <h3 className="font-semibold">
-                                        {selectedCamera ? selectedCamera.name : 'Select a Camera'}
-                                    </h3>
-                                    <p className="text-xs text-muted-foreground">
-                                        {selectedCamera ? selectedCamera.location : 'Choose from available public CCTV streams'}
-                                    </p>
+                                    {selectedCamera && (
+                                        <div className="bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-3">
+                                            <h3 className="text-white font-bold text-sm">{selectedCamera.name}</h3>
+                                            <p className="text-white/60 text-[10px] uppercase tracking-tight">{selectedCamera.location}</p>
+                                        </div>
+                                    )}
                                 </div>
+
+                                {selectedCamera && (
+                                    <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={disconnectCamera}
+                                        className="pointer-events-auto bg-black/20 hover:bg-red-500/20 text-white/70 hover:text-red-500 border border-white/5 backdrop-blur-md transition-all rounded-full h-8 px-4"
+                                    >
+                                        Disconnect
+                                    </Button>
+                                )}
                             </div>
-                            {selectedCamera && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={disconnectCamera}
-                                    className="text-destructive hover:text-destructive"
-                                >
-                                    Disconnect
-                                </Button>
-                            )}
-                        </div>
 
-                        {/* Video Canvas */}
-                        <div className="relative h-[65vh] max-h-[600px] w-full bg-black flex items-center justify-center">
-                            {selectedCamera ? (
-                                <>
-                                    <canvas
-                                        ref={canvasRef}
-                                        width={640}
-                                        height={480}
-                                        className="w-full h-full object-contain"
-                                    />
+                            {/* Canvas Wrapper */}
+                            <div className="relative aspect-video w-full flex items-center justify-center bg-zinc-950">
+                                {selectedCamera ? (
+                                    <>
+                                        <canvas
+                                            ref={canvasRef}
+                                            width={640}
+                                            height={480}
+                                            className="w-full h-full object-contain"
+                                        />
 
-                                    {/* Status Overlay */}
-                                    {isConnecting && (
-                                        <div className="absolute inset-0 bg-black/70 flex flex-col items-center justify-center">
-                                            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-                                            <p className="text-white">Connecting to stream...</p>
-                                            <p className="text-white/60 text-sm mt-1">
-                                                {selectedCamera?.url?.includes('youtube')
-                                                    ? 'Extracting YouTube stream (up to 15 seconds)...'
-                                                    : 'Initializing video feed...'}
-                                            </p>
-                                        </div>
-                                    )}
+                                        {isConnecting && (
+                                            <div className="absolute inset-0 bg-zinc-950/80 flex flex-col items-center justify-center">
+                                                <div className="relative w-16 h-16">
+                                                    <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
+                                                    <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                                                </div>
+                                                <p className="text-white font-medium mt-6 tracking-wide">ESTABLISHING UPLINK</p>
+                                                <p className="text-zinc-500 text-[10px] mt-2 font-mono">
+                                                    {selectedCamera?.url?.includes('youtube') ? 'DECODING YOUTUBE STREAM...' : 'CONNECTING TO RTSP HOST...'}
+                                                </p>
+                                            </div>
+                                        )}
 
-                                    {/* Live Badge */}
-                                    {isConnected && (
-                                        <div className="absolute top-3 left-3 flex items-center gap-2 bg-red-600/90 text-white px-3 py-1.5 rounded-lg text-sm font-medium backdrop-blur-sm">
-                                            <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                                            LIVE
-                                        </div>
-                                    )}
+                                        {isConnected && (
+                                            <div className="absolute bottom-6 left-6 right-6 flex items-end justify-between pointer-events-none">
+                                                <div className="bg-black/40 backdrop-blur-xl border border-white/10 p-4 rounded-2xl pointer-events-auto flex items-center gap-4">
+                                                    <div className="p-3 bg-primary/20 rounded-xl">
+                                                        <Users className="w-5 h-5 text-primary" />
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest leading-none mb-1">Live Occupancy</div>
+                                                        <div className="flex items-baseline gap-1">
+                                                            <span className="text-3xl font-black text-white tracking-tighter tabular-nums leading-none">
+                                                                <CountUp end={currentCount} duration={0.3} preserveValue />
+                                                            </span>
+                                                            <span className="text-xs text-zinc-500 font-medium tracking-tight">PERSONS</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
 
-                                    {/* Count Overlay */}
-                                    {isConnected && (
-                                        <div className="absolute bottom-3 left-3 right-3 flex items-center justify-between">
-                                            <div className="bg-black/70 backdrop-blur-sm text-white px-4 py-2 rounded-lg">
-                                                <div className="flex items-center gap-2">
-                                                    <Users className="w-5 h-5" />
-                                                    <span className="text-2xl font-bold">
-                                                        <CountUp end={currentCount} duration={0.3} preserveValue />
-                                                    </span>
-                                                    <span className="text-sm text-white/70">persons</span>
+                                                <div className={clsxMerge(
+                                                    "px-6 py-3 rounded-2xl text-xs font-black uppercase tracking-widest backdrop-blur-xl border pointer-events-auto",
+                                                    crowdInfo.bgColor, crowdInfo.color, "border-white/5"
+                                                )}>
+                                                    {crowdInfo.level} Density
                                                 </div>
                                             </div>
-
-                                            <div className={cn(
-                                                "px-3 py-1.5 rounded-lg text-sm font-medium backdrop-blur-sm",
-                                                crowdInfo.bgColor, crowdInfo.color
-                                            )}>
-                                                {crowdInfo.level} Crowd
-                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="flex flex-col items-center justify-center text-zinc-600 group/empty">
+                                        <div className="w-20 h-20 rounded-full bg-zinc-900 flex items-center justify-center mb-6 group-hover/empty:scale-110 transition-transform duration-500">
+                                            <Video className="w-8 h-8 opacity-20" />
                                         </div>
-                                    )}
-                                </>
-                            ) : (
-                                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground">
-                                    <Video className="w-16 h-16 mb-4 opacity-50" />
-                                    <p className="text-lg">No camera selected</p>
-                                    <p className="text-sm opacity-70 mt-1">Select a camera from the list to start</p>
-                                </div>
-                            )}
+                                        <h3 className="text-zinc-400 font-bold tracking-wide">NO ACTIVE STREAM</h3>
+                                        <p className="text-zinc-600 text-[11px] mt-2 uppercase tracking-widest">Select a channel from the directory</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
 
-                    {/* Stream Statistics */}
+                    {/* Telemetry Stats */}
                     {isConnected && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            className="grid grid-cols-2 sm:grid-cols-4 gap-4"
-                        >
-                            <div className="glass-card p-4 text-center">
-                                <Activity className="w-5 h-5 mx-auto mb-2 text-primary" />
-                                <p className="text-2xl font-bold">
-                                    <CountUp end={currentCount} duration={0.3} preserveValue />
-                                </p>
-                                <p className="text-xs text-muted-foreground">Current</p>
-                            </div>
-                            <div className="glass-card p-4 text-center">
-                                <Zap className="w-5 h-5 mx-auto mb-2 text-orange-500" />
-                                <p className="text-2xl font-bold">
-                                    <CountUp end={streamStats.maxCount} duration={0.3} preserveValue />
-                                </p>
-                                <p className="text-xs text-muted-foreground">Peak</p>
-                            </div>
-                            <div className="glass-card p-4 text-center">
-                                <Users className="w-5 h-5 mx-auto mb-2 text-blue-500" />
-                                <p className="text-2xl font-bold">
-                                    <CountUp end={streamStats.avgCount} duration={0.3} preserveValue />
-                                </p>
-                                <p className="text-xs text-muted-foreground">Average</p>
-                            </div>
-                            <div className="glass-card p-4 text-center">
-                                <Radio className="w-5 h-5 mx-auto mb-2 text-green-500" />
-                                <p className="text-2xl font-bold">
-                                    {Math.floor((Date.now() - streamStats.startTime) / 1000)}s
-                                </p>
-                                <p className="text-xs text-muted-foreground">Uptime</p>
-                            </div>
-                        </motion.div>
+                        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                            {[
+                                { label: 'Peak Data', value: streamStats.maxCount, icon: Zap, color: 'text-orange-500', bg: 'bg-orange-500/10' },
+                                { label: 'Average', value: streamStats.avgCount, icon: Users, color: 'text-blue-500', bg: 'bg-blue-500/10' },
+                                { label: 'Signal Uptime', value: `${Math.floor((Date.now() - streamStats.startTime) / 1000)}s`, icon: Radio, color: 'text-green-500', bg: 'bg-green-500/10' },
+                                { label: 'Processing', value: '30 FPS', icon: Activity, color: 'text-purple-500', bg: 'bg-purple-500/10' }
+                            ].map((stat, i) => (
+                                <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0, y: 10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    transition={{ delay: i * 0.05 }}
+                                    className="glass-card p-4 flex items-center gap-4 border-border/50 bg-white/40"
+                                >
+                                    <div className={clsxMerge("p-2 rounded-lg", stat.bg)}>
+                                        <stat.icon className={clsxMerge("w-4 h-4", stat.color)} />
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">{stat.label}</div>
+                                        <div className="text-lg font-bold tracking-tight">
+                                            {typeof stat.value === 'number' ? <CountUp end={stat.value} duration={1} /> : stat.value}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))}
+                        </div>
                     )}
 
-                    {/* Detection History Chart */}
+                    {/* History Chart */}
                     {isConnected && streamStats.history.length > 0 && (
                         <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="glass-card p-4"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="glass-card p-6 border-border/50 bg-white/40"
                         >
-                            <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-                                <Activity className="w-4 h-4 text-primary" />
-                                Detection Timeline
-                            </h3>
-                            <div className="h-20 flex items-end gap-0.5">
+                            <div className="flex items-center justify-between mb-6">
+                                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground flex items-center gap-2">
+                                    <Activity className="w-3.5 h-3.5" />
+                                    Detection Timeline History
+                                </h3>
+                                <div className="text-[10px] font-mono text-muted-foreground bg-secondary px-2 py-0.5 rounded uppercase">Live Feed Updates</div>
+                            </div>
+                            <div className="h-32 flex items-end gap-1 px-1">
                                 {streamStats.history.map((count, i) => {
-                                    const height = streamStats.maxCount > 0
-                                        ? (count / streamStats.maxCount) * 100
-                                        : 0;
-                                    const crowdLevel = getCrowdLevel(count);
+                                    const height = streamStats.maxCount > 0 ? (count / streamStats.maxCount) * 100 : 0;
                                     return (
                                         <div
                                             key={i}
-                                            className="flex-1 rounded-t transition-all duration-300"
+                                            className="flex-1 rounded-sm transition-all duration-300 relative group/bar"
                                             style={{
-                                                height: `${Math.max(height, 2)}%`,
-                                                backgroundColor: count < 5 ? '#22c55e' :
-                                                    count < 15 ? '#eab308' :
-                                                        count < 30 ? '#f97316' : '#ef4444'
+                                                height: `${Math.max(height, 4)}%`,
+                                                backgroundColor: count < 5 ? 'hsl(var(--crowd-low))' :
+                                                    count < 15 ? 'hsl(var(--crowd-medium))' :
+                                                        'hsl(var(--crowd-high))'
                                             }}
-                                            title={`${count} persons`}
-                                        />
+                                        >
+                                            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-popover text-popover-foreground text-[10px] font-bold px-1.5 py-0.5 rounded shadow-lg opacity-0 group-hover/bar:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
+                                                {count} ppl
+                                            </div>
+                                        </div>
                                     );
                                 })}
                             </div>
-                            <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-                                <span>60 samples ago</span>
-                                <span>Now</span>
+                            <div className="flex justify-between mt-4 text-[10px] font-bold text-muted-foreground uppercase tracking-widest pt-4 border-t border-border/50">
+                                <span>60 Seconds Ago</span>
+                                <span>Real-time Output</span>
                             </div>
                         </motion.div>
                     )}
                 </div>
 
+                {/* Right Column: Source Controls & Directory */}
+                <div className="xl:col-span-4 space-y-6">
+                    {/* Add/Edit Form */}
+                    <div className="glass-card p-6 border-zinc-200 shadow-xl overflow-hidden relative">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 -mr-16 -mt-16 rounded-full blur-3xl"></div>
+                        <div className="relative">
+                            <h3 className="text-sm font-black uppercase tracking-widest mb-6 flex items-center gap-3">
+                                <div className="p-1.5 bg-primary text-primary-foreground rounded-lg">
+                                    {editingId ? <Settings className="w-3.5 h-3.5" /> : <Plus className="w-3.5 h-3.5" />}
+                                </div>
+                                {editingId ? 'Modify Channel' : 'Register New Channel'}
+                            </h3>
 
+                            <div className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Channel Label</label>
+                                    <input
+                                        type="text"
+                                        value={savedName}
+                                        onChange={(e) => setSavedName(e.target.value)}
+                                        placeholder="Name your stream..."
+                                        className="w-full h-11 px-4 bg-muted border-none rounded-xl focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground ml-1">Stream Endpoint (RTSP/HLS/YT)</label>
+                                    <div className="relative">
+                                        <ExternalLink className="absolute left-4 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                                        <input
+                                            type="text"
+                                            value={customUrl}
+                                            onChange={(e) => setCustomUrl(e.target.value)}
+                                            placeholder="URL Source..."
+                                            className="w-full h-11 pl-11 pr-4 bg-muted border-none rounded-xl focus:ring-2 focus:ring-primary/20 text-sm font-medium transition-all"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="flex gap-2 pt-2">
+                                    <Button
+                                        onClick={handleSaveCamera}
+                                        disabled={!customUrl.trim() || !savedName.trim() || isSaving}
+                                        className="flex-1 h-11 rounded-xl font-bold uppercase tracking-widest text-xs"
+                                    >
+                                        {isSaving ? <RefreshCw className="w-4 h-4 animate-spin" /> : editingId ? 'Update Signal' : 'Save Channel'}
+                                    </Button>
+                                    {editingId && (
+                                        <Button
+                                            variant="secondary"
+                                            onClick={() => {
+                                                setEditingId(null);
+                                                setSavedName('');
+                                                setCustomUrl('');
+                                            }}
+                                            className="h-11 rounded-xl px-4"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </Button>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Directory / Saved Streams */}
+                    <div className="glass-card p-6 border-zinc-200 shadow-xl min-h-[400px]">
+                        <div className="flex items-center justify-between mb-6">
+                            <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-3">
+                                <div className="p-1.5 bg-secondary text-foreground rounded-lg">
+                                    <Globe className="w-3.5 h-3.5" />
+                                </div>
+                                Signal Directory
+                            </h3>
+                            <span className="text-[10px] font-bold text-muted-foreground bg-secondary px-2 py-0.5 rounded-full">{cameras.length} CH</span>
+                        </div>
+
+                        <div className="space-y-3 custom-scrollbar max-h-[500px] overflow-y-auto pr-2">
+                            {cameras.length > 0 ? (
+                                cameras.map((cam) => (
+                                    <div
+                                        key={cam.id}
+                                        className={clsxMerge(
+                                            "group p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden",
+                                            selectedCamera?.id === cam.id
+                                                ? "bg-primary text-primary-foreground border-primary shadow-lg shadow-primary/20 scale-[1.02]"
+                                                : "bg-white/50 border-border hover:border-primary/30 hover:shadow-md hover:bg-white"
+                                        )}
+                                    >
+                                        <div className="relative z-10 flex items-center justify-between gap-4">
+                                            <div className="flex-1 min-w-0">
+                                                <h4 className={clsxMerge("font-extrabold text-sm truncate uppercase tracking-tight", selectedCamera?.id === cam.id ? "text-white" : "text-zinc-900")}>
+                                                    {cam.name}
+                                                </h4>
+                                                <div className="flex items-center gap-2 mt-1">
+                                                    <span className={clsxMerge("text-[10px] font-medium opacity-60 flex items-center gap-1", selectedCamera?.id === cam.id ? "text-white" : "text-zinc-500")}>
+                                                        {cameraTypeIcons[cam.type] || <Camera className="w-3 h-3" />}
+                                                        {cam.type.toUpperCase()}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-1">
+                                                <Button
+                                                    size="icon"
+                                                    variant={selectedCamera?.id === cam.id ? "secondary" : "ghost"}
+                                                    className={clsxMerge("h-9 w-9 rounded-xl transition-all", selectedCamera?.id === cam.id ? "bg-white/10 text-white hover:bg-white/20" : "hover:bg-primary/5")}
+                                                    onClick={() => connectToCamera(cam)}
+                                                    disabled={isConnecting}
+                                                >
+                                                    {selectedCamera?.id === cam.id ? <Activity className="w-4 h-4 animate-pulse" /> : <Play className="w-4 h-4 fill-current" />}
+                                                </Button>
+
+                                                <div className={clsxMerge("w-px h-6 mx-1 opacity-20", selectedCamera?.id === cam.id ? "bg-white" : "bg-border")} />
+
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className={clsxMerge("h-9 w-9 rounded-xl", selectedCamera?.id === cam.id ? "text-white/60 hover:text-white" : "text-muted-foreground hover:text-foreground")}
+                                                    onClick={() => handleEditCamera(cam)}
+                                                    disabled={selectedCamera?.id === cam.id}
+                                                >
+                                                    <Edit2 className="w-4 h-4" />
+                                                </Button>
+                                                <Button
+                                                    size="icon"
+                                                    variant="ghost"
+                                                    className={clsxMerge("h-9 w-9 rounded-xl", selectedCamera?.id === cam.id ? "text-white/60" : "text-muted-foreground hover:text-red-500")}
+                                                    onClick={() => handleDeleteCamera(cam.id)}
+                                                    disabled={selectedCamera?.id === cam.id}
+                                                >
+                                                    <Trash2 className="w-4 h-4" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                        {selectedCamera?.id === cam.id && (
+                                            <motion.div
+                                                layoutId="active-indicator"
+                                                className="absolute bottom-0 left-0 h-1 bg-white"
+                                                initial={{ width: 0 }}
+                                                animate={{ width: '100%' }}
+                                            />
+                                        )}
+                                    </div>
+                                ))
+                            ) : (
+                                <div className="text-center py-12 px-4 border-2 border-dashed border-border rounded-2xl">
+                                    <Globe className="w-8 h-8 mx-auto text-muted-foreground/30 mb-3" />
+                                    <p className="text-xs font-bold text-muted-foreground uppercase tracking-widest">No signals configured</p>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div >
+        </div>
     );
 }
+
+

@@ -43,6 +43,10 @@ export function MapDashboard() {
   }, [filter, sortBy]);
 
   const handleLocationClick = (location: Location) => {
+    setSelectedLocation(location);
+  };
+
+  const handleViewDetails = (location: Location) => {
     navigate(`/location/${location.id}`);
   };
 
@@ -52,6 +56,14 @@ export function MapDashboard() {
     const high = chennaiLocations.filter(l => l.crowdLevel === 'high').length;
     return { low, medium, high };
   }, []);
+
+  const highCrowdLocations = useMemo(() => {
+    return filteredLocations.filter(loc => loc.crowdLevel === 'high');
+  }, [filteredLocations]);
+
+  const displayAlertLocation = selectedLocation?.crowdLevel === 'high'
+    ? selectedLocation
+    : highCrowdLocations[0];
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col lg:flex-row relative">
@@ -63,8 +75,11 @@ export function MapDashboard() {
         <CrowdMap
           locations={filteredLocations}
           onLocationSelect={handleLocationClick}
+          onNavigate={handleViewDetails}
           selectedLocation={selectedLocation}
         />
+
+
 
         {/* Quick Stats Overlay */}
         <div className="absolute top-4 left-4 right-4 lg:right-auto flex gap-2 z-10">
@@ -125,11 +140,11 @@ export function MapDashboard() {
                 <span className="text-sm text-muted-foreground">{filteredLocations.length} places</span>
               </div>
               <div className="w-full overflow-x-auto pb-2">
-                <div className="flex gap-2">
+                <div className="flex gap-2 min-w-max px-1">
                   {locationTypeFilters.map((option) => (
                     <button
                       key={option.value}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === option.value
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0 transition-colors ${filter === option.value
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-secondary hover:bg-secondary/80 text-foreground'
                         }`}
@@ -185,11 +200,11 @@ export function MapDashboard() {
 
               {/* Filter */}
               <div className="w-full overflow-x-auto mb-4 pb-2">
-                <div className="flex gap-2">
+                <div className="flex gap-2 min-w-max px-1">
                   {locationTypeFilters.map((option) => (
                     <button
                       key={option.value}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === option.value
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap flex-shrink-0 transition-colors ${filter === option.value
                         ? 'bg-primary text-primary-foreground'
                         : 'bg-secondary hover:bg-secondary/80 text-foreground'
                         }`}
