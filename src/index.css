@@ -1,66 +1,64 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
-  body {}
-
   :root {
-    /* Core Colors - Refined for Premium Feel */
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    /* Apple-inspired color system */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
 
-    /* Card with Enhanced Glassmorphism */
+    /* Cards - Ultra clean */
     --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card-foreground: 0 0% 0%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover-foreground: 0 0% 0%;
 
-    /* Sharper Primary - Deep Indigo/Slate */
-    --primary: 222 47% 11%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - Pure black */
+    --primary: 0 0% 0%;
+    --primary-foreground: 0 0% 100%;
 
-    /* Soft Secondary - Subtle Blue-Grey */
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222 47.4% 11.2%;
+    /* Secondary - Soft gray */
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 0%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222 47.4% 11.2%;
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 0%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 0 0% 92%;
+    --input: 0 0% 92%;
+    --ring: 0 0% 0%;
 
-    --radius: 1.25rem;
+    --radius: 0.75rem;
 
-    /* Crowd Level Colors - More Vibrant */
+    /* Crowd Level Colors - Refined */
     --crowd-low: 142 71% 45%;
-    --crowd-medium: 37 95% 48%;
+    --crowd-medium: 38 92% 50%;
     --crowd-high: 0 84% 60%;
 
-    /* Premium Glass Effect */
-    --glass-bg: 0 0% 100% / 0.8;
-    --glass-border: 214 32% 91% / 0.6;
-    --glass-shadow: 0 12px 40px -12px rgba(0, 0, 0, 0.12);
+    /* Apple-style subtle shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12);
 
-    /* Sidebar - Refined */
-    --sidebar-background: 0 0% 100%;
-    --sidebar-foreground: 215 16% 47%;
-    --sidebar-primary: 222 47% 11%;
+    /* Sidebar */
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 0 0% 45%;
+    --sidebar-primary: 0 0% 0%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91% / 0.5;
-    --sidebar-ring: 222 47% 11%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-border: 0 0% 92%;
+    --sidebar-ring: 0 0% 0%;
   }
 }
 
@@ -70,17 +68,16 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
-    font-feature-settings: "cv02", "cv03", "cv04", "cv11", "ss01";
-    text-rendering: optimizeLegibility;
+    @apply bg-background text-foreground antialiased;
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Premium Global Scrollbar */
+  /* Minimal scrollbar */
   ::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 8px;
+    height: 8px;
   }
 
   ::-webkit-scrollbar-track {
@@ -88,133 +85,63 @@
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-muted-foreground/10 rounded-full;
+    @apply bg-border rounded-full;
   }
 
   ::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/30;
+    @apply bg-muted-foreground/20;
   }
 
-  /* Tabular figures for numbers */
   .tabular-nums {
     font-variant-numeric: tabular-nums;
   }
 
-  /* Selection style */
   ::selection {
-    @apply bg-primary/10 text-primary;
+    @apply bg-primary/10;
   }
 }
 
 @layer components {
-
-  /* Glassmorphism Card */
+  /* Apple-style clean card */
   .glass-card {
-    @apply rounded-2xl border backdrop-blur-xl;
-    background: hsl(var(--glass-bg));
-    border-color: hsl(var(--glass-border));
-    box-shadow: var(--glass-shadow);
+    @apply bg-card rounded-2xl border border-border;
+    box-shadow: var(--shadow-sm);
   }
 
-  /* Glassmorphism Card Hover Effect */
   .glass-card-hover {
-    @apply glass-card transition-all duration-300 ease-out;
+    @apply glass-card transition-all duration-200 ease-out;
   }
 
   .glass-card-hover:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--shadow-md);
   }
 
-  /* Crowd Level Badges */
+  /* Clean badges */
   .badge-low {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
-    background: hsl(160 84% 39% / 0.1);
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+    background: hsl(var(--crowd-low) / 0.1);
     color: hsl(var(--crowd-low));
   }
 
   .badge-medium {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
-    background: hsl(38 92% 50% / 0.1);
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+    background: hsl(var(--crowd-medium) / 0.1);
     color: hsl(var(--crowd-medium));
   }
 
   .badge-high {
-    @apply inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold;
-    background: hsl(0 84% 60% / 0.1);
+    @apply inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium;
+    background: hsl(var(--crowd-high) / 0.1);
     color: hsl(var(--crowd-high));
   }
 
-  /* Pulsing Indicator */
-  .pulse-dot {
-    @apply relative;
-  }
-
-  .pulse-dot::after {
-    content: '';
-    @apply absolute inset-0 rounded-full animate-ping opacity-75;
-    background: inherit;
-  }
-
-  /* Map Marker Styles */
-  .marker-low {
-    @apply w-4 h-4 rounded-full;
-    background: hsl(var(--crowd-low));
-    box-shadow: 0 0 0 4px hsl(160 84% 39% / 0.2);
-  }
-
-  .marker-medium {
-    @apply w-4 h-4 rounded-full;
-    background: hsl(var(--crowd-medium));
-    box-shadow: 0 0 0 4px hsl(38 92% 50% / 0.2);
-  }
-
-  .marker-high {
-    @apply w-4 h-4 rounded-full;
-    background: hsl(var(--crowd-high));
-    box-shadow: 0 0 0 4px hsl(0 84% 60% / 0.2);
-  }
-
-  /* Shimmer Loading Effect */
-  .shimmer {
-    @apply relative overflow-hidden;
-    background: linear-gradient(90deg, hsl(var(--muted)) 25%, hsl(var(--background)) 50%, hsl(var(--muted)) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.5s infinite;
-  }
-
-  @keyframes shimmer {
-    0% {
-      background-position: 200% 0;
-    }
-
-    100% {
-      background-position: -200% 0;
-    }
-  }
-
-  /* Smooth Page Transitions */
-  .page-enter {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-
-  .page-enter-active {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity 300ms ease-out, transform 300ms ease-out;
-  }
-
-  /* Mode Toggle */
+  /* Mode toggle - Apple style */
   .mode-toggle {
-    @apply relative flex items-center p-1 rounded-full;
-    background: hsl(var(--glass-bg));
-    backdrop-filter: blur(20px);
-    border: 1px solid hsl(var(--glass-border));
+    @apply relative flex items-center p-1 rounded-full bg-secondary;
   }
 
   .mode-toggle-option {
-    @apply relative z-10 flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full transition-colors duration-300;
+    @apply relative z-10 flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-full transition-colors duration-200;
   }
 
   .mode-toggle-option.active {
@@ -226,49 +153,32 @@
   }
 
   .mode-toggle-slider {
-    @apply absolute top-1 bottom-1 rounded-full bg-primary transition-all duration-300 ease-out;
+    @apply absolute top-1 bottom-1 rounded-full bg-primary transition-all duration-200 ease-out;
   }
 
-  /* Stat Card */
+  /* Stat card */
   .stat-card {
     @apply glass-card p-6;
   }
 
   .stat-value {
-    @apply text-3xl font-bold tracking-tight tabular-nums;
+    @apply text-3xl font-semibold tracking-tight tabular-nums;
   }
 
   .stat-label {
     @apply text-sm text-muted-foreground mt-1;
   }
-
-  /* Custom Scrollbar */
-  .custom-scrollbar::-webkit-scrollbar {
-    @apply w-2;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-track {
-    @apply bg-transparent;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-border rounded-full;
-  }
-
-  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    @apply bg-muted-foreground/30;
-  }
 }
 
-/* Leaflet Map Overrides */
+/* Leaflet overrides - Clean */
 .leaflet-container {
-  @apply font-sans;
+  font-family: inherit;
   background: hsl(var(--background));
 }
 
 .leaflet-popup-content-wrapper {
-  @apply glass-card p-0 overflow-hidden;
-  box-shadow: var(--glass-shadow);
+  @apply bg-card rounded-xl border border-border p-0 overflow-hidden;
+  box-shadow: var(--shadow-lg);
 }
 
 .leaflet-popup-content {
@@ -276,12 +186,12 @@
 }
 
 .leaflet-popup-tip {
-  background: hsl(var(--glass-bg));
-  backdrop-filter: blur(20px);
+  background: hsl(var(--card));
 }
 
 .leaflet-control-zoom {
-  @apply glass-card overflow-hidden border-0;
+  @apply bg-card rounded-xl overflow-hidden border border-border;
+  box-shadow: var(--shadow-sm);
 }
 
 .leaflet-control-zoom a {
@@ -289,20 +199,27 @@
 }
 
 .leaflet-control-zoom a:hover {
-  @apply bg-muted;
+  @apply bg-secondary;
 }
 
-/* Optimized Map Parsers */
-@keyframes pulse-ring {
-  0% {
-    transform: translate(-50%, -50%) scale(1);
-    opacity: 0.3;
-  }
+/* Map markers */
+.map-marker-container {
+  position: relative;
+  width: 24px;
+  height: 24px;
+}
 
-  100% {
-    transform: translate(-50%, -50%) scale(2);
-    opacity: 0;
-  }
+.map-marker-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  z-index: 2;
 }
 
 .map-marker-pulse {
@@ -314,24 +231,16 @@
   height: 24px;
   border-radius: 50%;
   opacity: 0.3;
-  animation: pulse-ring 1.5s ease-out infinite;
+  animation: pulse-ring 2s ease-out infinite;
 }
 
-.map-marker-dot {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 3px solid white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-  z-index: 2;
-}
-
-.map-marker-container {
-  position: relative;
-  width: 24px;
-  height: 24px;
+@keyframes pulse-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.8);
+    opacity: 0;
+  }
 }

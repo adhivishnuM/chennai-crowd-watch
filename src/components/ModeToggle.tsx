@@ -12,23 +12,23 @@ export function ModeToggle() {
         initial={false}
         animate={{
           left: mode === 'public' ? '4px' : 'calc(50% + 2px)',
-          width: mode === 'public' ? 'calc(50% - 6px)' : 'calc(50% - 6px)',
+          width: 'calc(50% - 6px)',
         }}
-        transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       />
       <button
         className={`mode-toggle-option ${mode === 'public' ? 'active' : ''}`}
         onClick={() => setMode('public')}
       >
         <Eye className="w-4 h-4" />
-        <span className="hidden sm:inline">Public View</span>
+        <span className="hidden sm:inline">Public</span>
       </button>
       <button
         className={`mode-toggle-option ${mode === 'admin' ? 'active' : ''}`}
         onClick={() => setMode('admin')}
       >
         <Settings className="w-4 h-4" />
-        <span className="hidden sm:inline">Admin Panel</span>
+        <span className="hidden sm:inline">Admin</span>
       </button>
     </div>
   );
