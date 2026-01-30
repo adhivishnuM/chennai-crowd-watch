@@ -1,104 +1,42 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Bus, Train, Users, Clock, AlertTriangle, RefreshCw } from 'lucide-react';
-
-interface BusRoute {
-    id: string;
-    from: string;
-    to: string;
-    occupation: number;
-    status: string;
-    nextBus: number;
-}
-
-interface TrainRoute {
-    id: string;
-    route: string;
-    occupation: number;
-    status: string;
-    nextTrain: number;
-}
-
-const initialBuses: BusRoute[] = [
-    { id: '21G', from: 'Broadway', to: 'Tambaram', occupation: 85, status: 'Crowded', nextBus: 5 },
-    { id: '102', from: 'Broadway', to: 'Kelambakkam', occupation: 45, status: 'Moderate', nextBus: 12 },
-    { id: '5C', from: 'Broadway', to: 'Taramani', occupation: 30, status: 'Low', nextBus: 8 },
-    { id: '29C', from: 'Perambur', to: 'Besant Nagar', occupation: 92, status: 'Very High', nextBus: 3 },
-    { id: '27C', from: 'CMBT', to: 'Thiruvanmiyur', occupation: 55, status: 'Moderate', nextBus: 7 },
-    { id: '18', from: 'Parry Corner', to: 'Vadapalani', occupation: 78, status: 'Crowded', nextBus: 4 },
-    { id: '11C', from: 'T. Nagar', to: 'Adyar', occupation: 25, status: 'Low', nextBus: 10 },
-    { id: '47A', from: 'Anna Nagar', to: 'Mylapore', occupation: 68, status: 'Moderate', nextBus: 6 },
-    { id: '23C', from: 'Guindy', to: 'Central', occupation: 88, status: 'Crowded', nextBus: 2 },
-    { id: '54', from: 'Koyambedu', to: 'OMR', occupation: 42, status: 'Moderate', nextBus: 15 },
-    { id: '15B', from: 'Egmore', to: 'Velachery', occupation: 35, status: 'Low', nextBus: 9 },
-    { id: '70', from: 'Tambaram', to: 'T. Nagar', occupation: 72, status: 'Crowded', nextBus: 5 },
-];
-
-const initialTrains: TrainRoute[] = [
-    { id: 'MRTS', route: 'Velachery - Beach', occupation: 60, status: 'Moderate', nextTrain: 7 },
-    { id: 'Metro-B', route: 'Wimco Nagar - Airport', occupation: 40, status: 'Low', nextTrain: 4 },
-    { id: 'Suburban', route: 'Central - Arakkonam', occupation: 95, status: 'Very High', nextTrain: 10 },
-    { id: 'Metro-G', route: 'Central - Poonamallee', occupation: 52, status: 'Moderate', nextTrain: 3 },
-    { id: 'EMU', route: 'Beach - Tambaram', occupation: 78, status: 'Crowded', nextTrain: 6 },
-    { id: 'Express', route: 'Egmore - Trichy', occupation: 28, status: 'Low', nextTrain: 25 },
-];
+import { Bus, Train, Users, Clock, AlertTriangle, RefreshCw, TrendingUp, TrendingDown, Minus } from 'lucide-react';
+import { getTransportData, BusRoute, TrainRoute } from '../data/mockTransport';
 
 const TransportPage = () => {
-    const [buses, setBuses] = useState<BusRoute[]>(initialBuses);
-    const [trains, setTrains] = useState<TrainRoute[]>(initialTrains);
+    const [buses, setBuses] = useState<BusRoute[]>([]);
+    const [trains, setTrains] = useState<TrainRoute[]>([]);
     const [lastUpdate, setLastUpdate] = useState(new Date());
     const [isUpdating, setIsUpdating] = useState(false);
 
-    const getStatus = (occ: number) => {
-        if (occ > 80) return 'Very High';
-        if (occ > 60) return 'Crowded';
-        if (occ > 40) return 'Moderate';
-        return 'Low';
-    };
-
-    const simulateUpdate = () => {
+    const updateData = () => {
         setIsUpdating(true);
-
-        // Update buses
-        setBuses(prev => prev.map(bus => {
-            let next = bus.nextBus - 1;
-            let occ = bus.occupation + Math.floor((Math.random() - 0.5) * 15);
-            occ = Math.max(15, Math.min(98, occ));
-            if (next <= 0) {
-                next = Math.floor(Math.random() * 12) + 3;
-                occ = Math.floor(Math.random() * 60) + 20;
-            }
-            return { ...bus, nextBus: next, occupation: occ, status: getStatus(occ) };
-        }));
-
-        // Update trains
-        setTrains(prev => prev.map(train => {
-            let next = train.nextTrain - 1;
-            let occ = train.occupation + Math.floor((Math.random() - 0.5) * 12);
-            occ = Math.max(10, Math.min(98, occ));
-            if (next <= 0) {
-                next = Math.floor(Math.random() * 8) + 2;
-                occ = Math.floor(Math.random() * 70) + 15;
-            }
-            return { ...train, nextTrain: next, occupation: occ, status: getStatus(occ) };
-        }));
-
+        const { buses: newBuses, trains: newTrains } = getTransportData();
+        setBuses(newBuses);
+        setTrains(newTrains);
         setLastUpdate(new Date());
+
         setTimeout(() => setIsUpdating(false), 500);
     };
 
     useEffect(() => {
-        // Initial simulation to mix up the data
-        simulateUpdate();
+        // Initial load
+        updateData();
 
-        // Update every 5 seconds for realistic simulation
-        const interval = setInterval(simulateUpdate, 5000);
+        // Update every 5 seconds
+        const interval = setInterval(updateData, 5000);
         return () => clearInterval(interval);
     }, []);
 
+    const getTrendIcon = (trend: 'rising' | 'falling' | 'stable') => {
+        if (trend === 'rising') return <TrendingUp size={12} className="text-red-500" />;
+        if (trend === 'falling') return <TrendingDown size={12} className="text-green-500" />;
+        return <Minus size={12} className="text-gray-400" />;
+    };
+
     return (
         <motion.div
-            className="min-h-screen bg-background pt-20 pb-24"
+            className="min-h-screen bg-background pt-14 pb-8"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -112,7 +50,7 @@ const TransportPage = () => {
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin text-primary' : ''}`} />
-                            <span>Updated {lastUpdate.toLocaleTimeString()}</span>
+                            <span>Updated {lastUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                         </div>
                     </div>
                 </header>
@@ -142,15 +80,18 @@ const TransportPage = () => {
                                         <div>
                                             <p className="font-medium text-sm">{route.from} → {route.to}</p>
                                             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-                                                <span className="flex items-center gap-1"><Users size={12} /> {route.occupation}%</span>
+                                                <span className="flex items-center gap-1">
+                                                    <Users size={12} /> {route.occupation}%
+                                                    {getTrendIcon(route.trend)}
+                                                </span>
                                                 <span className="flex items-center gap-1"><Clock size={12} /> {route.nextBus}min</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${route.occupation > 80 ? 'bg-red-500/10 text-red-500' :
-                                            route.occupation > 60 ? 'bg-orange-500/10 text-orange-500' :
-                                                route.occupation > 40 ? 'bg-yellow-500/10 text-yellow-600' :
-                                                    'bg-green-500/10 text-green-600'
+                                        route.occupation > 60 ? 'bg-orange-500/10 text-orange-500' :
+                                            route.occupation > 40 ? 'bg-yellow-500/10 text-yellow-600' :
+                                                'bg-green-500/10 text-green-600'
                                         }`}>
                                         {route.status}
                                     </div>
@@ -183,15 +124,18 @@ const TransportPage = () => {
                                         <div>
                                             <p className="font-medium text-sm">{route.id}: {route.route}</p>
                                             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-0.5">
-                                                <span className="flex items-center gap-1"><Users size={12} /> {route.occupation}%</span>
+                                                <span className="flex items-center gap-1">
+                                                    <Users size={12} /> {route.occupation}%
+                                                    {getTrendIcon(route.trend)}
+                                                </span>
                                                 <span className="flex items-center gap-1"><Clock size={12} /> {route.nextTrain}min</span>
                                             </div>
                                         </div>
                                     </div>
                                     <div className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${route.occupation > 80 ? 'bg-red-500/10 text-red-500' :
-                                            route.occupation > 60 ? 'bg-orange-500/10 text-orange-500' :
-                                                route.occupation > 40 ? 'bg-yellow-500/10 text-yellow-600' :
-                                                    'bg-green-500/10 text-green-600'
+                                        route.occupation > 60 ? 'bg-orange-500/10 text-orange-500' :
+                                            route.occupation > 40 ? 'bg-yellow-500/10 text-yellow-600' :
+                                                'bg-green-500/10 text-green-600'
                                         }`}>
                                         {route.status}
                                     </div>

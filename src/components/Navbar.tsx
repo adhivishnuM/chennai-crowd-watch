@@ -47,7 +47,7 @@ export function Navbar() {
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 30 }}
     >
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="w-full mx-auto px-6">
         <div className="flex items-center justify-between h-14">
           {/* Logo */}
           <div onClick={handleLogoClick} className="cursor-pointer flex items-center gap-2.5">
@@ -60,23 +60,23 @@ export function Navbar() {
           {/* Center Navigation */}
           {mode === 'public' && (
             <div className="hidden md:flex items-center gap-1">
-              <NavLink 
-                to="/" 
-                end 
+              <NavLink
+                to="/"
+                end
                 className="px-4 py-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                 activeClassName="bg-secondary text-foreground"
               >
                 Map
               </NavLink>
-              <NavLink 
-                to="/transport" 
+              <NavLink
+                to="/transport"
                 className="px-4 py-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                 activeClassName="bg-secondary text-foreground"
               >
                 Transport
               </NavLink>
-              <NavLink 
-                to="/best-times" 
+              <NavLink
+                to="/best-times"
                 className="px-4 py-2 rounded-full text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                 activeClassName="bg-secondary text-foreground"
               >

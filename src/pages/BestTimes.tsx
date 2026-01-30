@@ -35,7 +35,7 @@ export default function BestTimes() {
 
   return (
     <motion.div
-      className="min-h-screen bg-background pt-16 pb-8"
+      className="min-h-screen bg-background pt-14 pb-8"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
@@ -62,11 +62,10 @@ export default function BestTimes() {
               {locationTypeFilters.map((option) => (
                 <button
                   key={option.value}
-                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                    filter === option.value
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === option.value
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-secondary hover:bg-secondary/80 text-foreground'
-                  }`}
+                    }`}
                   onClick={() => setFilter(option.value as FilterType)}
                 >
                   <LocationTypeIcon type={option.value} size={14} />
@@ -112,9 +111,8 @@ export default function BestTimes() {
           {filteredLocations.map((location, index) => (
             <motion.div
               key={location.id}
-              className={`glass-card-hover p-4 cursor-pointer ${
-                selectedLocations.includes(location.id) ? 'ring-2 ring-primary' : ''
-              }`}
+              className={`glass-card-hover p-4 cursor-pointer ${selectedLocations.includes(location.id) ? 'ring-2 ring-primary' : ''
+                }`}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.03 }}
@@ -150,11 +148,10 @@ export default function BestTimes() {
                     toggleLocationSelection(location.id);
                   }}
                 >
-                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${
-                    selectedLocations.includes(location.id)
+                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${selectedLocations.includes(location.id)
                       ? 'bg-primary border-primary'
                       : 'border-border'
-                  }`}>
+                    }`}>
                     {selectedLocations.includes(location.id) && (
                       <svg className="w-3 h-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />

@@ -59,7 +59,7 @@ export default function LocationDetail() {
 
   return (
     <motion.div
-      className="min-h-screen bg-background pt-16 pb-8"
+      className="min-h-screen bg-background pt-14 pb-8"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >

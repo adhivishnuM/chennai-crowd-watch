@@ -108,18 +108,17 @@ export function MapDashboard() {
                 <h2 className="font-semibold">Locations</h2>
                 <span className="text-sm text-muted-foreground">{filteredLocations.length} places</span>
               </div>
-              
+
               {/* Filters */}
-              <ScrollArea className="w-full">
-                <div className="flex gap-2 pb-2">
+              <ScrollArea className="w-full" orientation="horizontal">
+                <div className="flex gap-2 pb-2 w-max">
                   {locationTypeFilters.map((option) => (
                     <button
                       key={option.value}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                        filter === option.value
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-secondary hover:bg-secondary/80 text-foreground'
-                      }`}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === option.value
+                        ? 'bg-primary text-primary-foreground'
+                        : 'bg-secondary hover:bg-secondary/80 text-foreground'
+                        }`}
                       onClick={() => setFilter(option.value as FilterType)}
                     >
                       <LocationTypeIcon type={option.value} size={14} />
@@ -144,8 +143,9 @@ export function MapDashboard() {
               </div>
             </ScrollArea>
           </>
-        )}
-      </motion.div>
+        )
+        }
+      </motion.div >
 
       {/* Toggle Panel Button */}
       <button
@@ -158,53 +158,54 @@ export function MapDashboard() {
 
       {/* Mobile Bottom Sheet */}
       <AnimatePresence>
-        {showListMobile && (
-          <motion.div
-            className="lg:hidden fixed inset-x-0 bottom-0 z-30 bg-background rounded-t-2xl shadow-lg border-t border-border"
-            initial={{ y: '100%' }}
-            animate={{ y: 0 }}
-            exit={{ y: '100%' }}
-            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          >
-            <div className="p-4">
-              <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
+        {
+          showListMobile && (
+            <motion.div
+              className="lg:hidden fixed inset-x-0 bottom-0 z-30 bg-background rounded-t-2xl shadow-lg border-t border-border"
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+            >
+              <div className="p-4">
+                <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
 
-              {/* Filter */}
-              <ScrollArea className="w-full mb-4">
-                <div className="flex gap-2 pb-2">
-                  {locationTypeFilters.map((option) => (
-                    <button
-                      key={option.value}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                        filter === option.value
+                {/* Filter */}
+                <ScrollArea className="w-full mb-4" orientation="horizontal">
+                  <div className="flex gap-2 pb-2 w-max">
+                    {locationTypeFilters.map((option) => (
+                      <button
+                        key={option.value}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === option.value
                           ? 'bg-primary text-primary-foreground'
                           : 'bg-secondary text-foreground'
-                      }`}
-                      onClick={() => setFilter(option.value as FilterType)}
-                    >
-                      <LocationTypeIcon type={option.value} size={14} />
-                      <span>{option.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </ScrollArea>
+                          }`}
+                        onClick={() => setFilter(option.value as FilterType)}
+                      >
+                        <LocationTypeIcon type={option.value} size={14} />
+                        <span>{option.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                </ScrollArea>
 
-              {/* Location List */}
-              <ScrollArea className="h-[50vh]">
-                <div className="space-y-2 pr-4">
-                  {filteredLocations.map((location, index) => (
-                    <LocationCard
-                      key={location.id}
-                      location={location}
-                      index={index}
-                      onClick={() => handleLocationClick(location)}
-                    />
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-          </motion.div>
-        )}
+                {/* Location List */}
+                <ScrollArea className="h-[50vh]">
+                  <div className="space-y-2 pr-4">
+                    {filteredLocations.map((location, index) => (
+                      <LocationCard
+                        key={location.id}
+                        location={location}
+                        index={index}
+                        onClick={() => handleLocationClick(location)}
+                      />
+                    ))}
+                  </div>
+                </ScrollArea>
+              </div>
+            </motion.div>
+          )
+        }
       </AnimatePresence>
     </div>
   );

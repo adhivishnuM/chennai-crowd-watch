@@ -27,7 +27,7 @@ export default function AdminSettings() {
     if (saved) {
       try {
         setSettings(prev => ({ ...prev, ...JSON.parse(saved) }));
-      } catch (e) {}
+      } catch (e) { }
     }
   }, []);
 
@@ -57,9 +57,8 @@ export default function AdminSettings() {
           <h1 className="text-2xl font-semibold">Settings</h1>
           <p className="text-muted-foreground text-sm">Configure system preferences</p>
         </div>
-        <Button onClick={handleSave} disabled={loading}>
-          <Save className="w-4 h-4 mr-2" />
-          {loading ? 'Saving...' : 'Save'}
+        <Button onClick={handleSave} disabled={loading} size="icon" title="Save Settings">
+          {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
         </Button>
       </div>
 

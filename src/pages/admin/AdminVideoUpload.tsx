@@ -158,9 +158,8 @@ export default function AdminVideoUpload() {
 
             <div className="relative inline-block">
               <input type="file" accept="video/*" onChange={handleFileSelect} className="absolute inset-0 opacity-0 cursor-pointer" />
-              <Button>
-                <File className="w-4 h-4 mr-2" />
-                Select Video
+              <Button size="icon" className="w-12 h-12 rounded-xl" title="Select Video">
+                <File className="w-6 h-6" />
               </Button>
             </div>
             <p className="text-xs text-muted-foreground mt-3">MP4, AVI, MOV • Max 500MB</p>
@@ -168,7 +167,7 @@ export default function AdminVideoUpload() {
         )}
 
         {(status === 'uploading' || status === 'processing') && (
-          <div className="max-w-2xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             <div className="text-center mb-6">
               <p className="text-sm text-muted-foreground mb-4">{file?.name}</p>
               <div className="flex items-center justify-center gap-4 mb-4">
@@ -183,17 +182,17 @@ export default function AdminVideoUpload() {
             </div>
 
             {status === 'processing' && stats && (
-              <div className="grid md:grid-cols-2 gap-6 mb-6">
-                <div className="aspect-video bg-primary rounded-xl overflow-hidden">
+              <div className="grid md:grid-cols-3 gap-6 mb-6">
+                <div className="md:col-span-2 aspect-video bg-primary rounded-xl overflow-hidden shadow-2xl">
                   {stats.preview_frame ? (
                     <img src={`data:image/jpeg;base64,${stats.preview_frame}`} alt="Preview" className="w-full h-full object-contain" />
                   ) : (
                     <div className="flex items-center justify-center h-full text-primary-foreground">
-                      <Zap className="w-8 h-8 animate-pulse" />
+                      <Zap className="w-16 h-16 animate-pulse" />
                     </div>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-1 gap-3 content-start">
                   {[
                     { label: 'Detected', value: stats.people_count },
                     { label: 'Frames', value: stats.frames_processed || 0 },

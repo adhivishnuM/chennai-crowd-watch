@@ -13,7 +13,13 @@ const recentActivity = [
   { id: 5, location: 'Phoenix Mall', event: 'Dropped to moderate', time: '32 min ago', type: 'alert' },
 ];
 
-export default function AdminDashboard() {
+import { AdminPage } from '../AdminPanel';
+
+interface AdminDashboardProps {
+  onNavigate: (page: AdminPage) => void;
+}
+
+export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   const totalLocations = chennaiLocations.length;
   const activeCameras = 42;
   const avgCrowdLevel = 65;
@@ -30,11 +36,11 @@ export default function AdminDashboard() {
     { label: 'Alerts', value: alertsToday, icon: Bell },
   ];
 
-  const quickActions = [
-    { label: 'Add Location', icon: Plus },
-    { label: 'Upload Video', icon: Upload },
-    { label: 'View Cameras', icon: Video },
-    { label: 'Reports', icon: FileText },
+  const quickActions: { label: string; icon: any; action: AdminPage }[] = [
+    { label: 'Add Location', icon: Plus, action: 'locations' },
+    { label: 'Upload Video', icon: Upload, action: 'upload' },
+    { label: 'View Cameras', icon: Video, action: 'live-cctv' },
+    { label: 'Reports', icon: FileText, action: 'analytics' },
   ];
 
   return (
@@ -102,14 +108,13 @@ export default function AdminDashboard() {
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.05 * index }}
                 >
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${
-                    activity.type === 'alert' ? 'bg-crowd-high/10 text-crowd-high' :
-                    activity.type === 'trend' ? 'bg-crowd-medium/10 text-crowd-medium' :
-                    'bg-secondary text-muted-foreground'
-                  }`}>
+                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${activity.type === 'alert' ? 'bg-crowd-high/10 text-crowd-high' :
+                      activity.type === 'trend' ? 'bg-crowd-medium/10 text-crowd-medium' :
+                        'bg-secondary text-muted-foreground'
+                    }`}>
                     {activity.type === 'alert' ? <Bell className="w-4 h-4" /> :
-                     activity.type === 'trend' ? <TrendingUp className="w-4 h-4" /> :
-                     <Video className="w-4 h-4" />}
+                      activity.type === 'trend' ? <TrendingUp className="w-4 h-4" /> :
+                        <Video className="w-4 h-4" />}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-sm">{activity.location}</p>
@@ -136,6 +141,7 @@ export default function AdminDashboard() {
                 <button
                   key={action.label}
                   className="flex flex-col items-center gap-2 p-4 rounded-xl bg-secondary hover:bg-secondary/80 transition-colors"
+                  onClick={() => onNavigate(action.action)}
                 >
                   <action.icon className="w-5 h-5 text-muted-foreground" />
                   <span className="text-xs font-medium">{action.label}</span>

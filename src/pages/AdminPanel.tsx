@@ -10,7 +10,7 @@ import AdminVideoUpload from './admin/AdminVideoUpload';
 import AdminAnalytics from './admin/AdminAnalytics';
 import AdminSettings from './admin/AdminSettings';
 
-type AdminPage = 'dashboard' | 'locations' | 'cameras' | 'live-cctv' | 'upload' | 'analytics' | 'settings';
+export type AdminPage = 'dashboard' | 'locations' | 'cameras' | 'live-cctv' | 'upload' | 'analytics' | 'settings';
 
 const navItems: { id: AdminPage; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -28,14 +28,14 @@ export default function AdminPanel() {
 
   const renderPage = () => {
     switch (activePage) {
-      case 'dashboard': return <AdminDashboard />;
+      case 'dashboard': return <AdminDashboard onNavigate={setActivePage} />;
       case 'locations': return <AdminLocations />;
       case 'cameras': return <AdminCameras />;
       case 'live-cctv': return <AdminLiveCCTV />;
       case 'upload': return <AdminVideoUpload />;
       case 'analytics': return <AdminAnalytics />;
       case 'settings': return <AdminSettings />;
-      default: return <AdminDashboard />;
+      default: return <AdminDashboard onNavigate={setActivePage} />;
     }
   };
 

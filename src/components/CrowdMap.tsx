@@ -96,17 +96,12 @@ export function CrowdMap({ locations, onLocationSelect, onNavigate, selectedLoca
 
                   <div className="space-y-2 mb-4 text-sm">
                     <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Capacity</span>
-                      <span className="font-medium">{capacityPercentage}%</span>
-                    </div>
-                    <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Trend</span>
                       <span className="flex items-center gap-1 capitalize">
-                        <Icon className={`w-3.5 h-3.5 ${
-                          location.trend === 'rising' ? 'text-crowd-high' :
-                          location.trend === 'falling' ? 'text-crowd-low' :
-                          'text-muted-foreground'
-                        }`} />
+                        <Icon className={`w-3.5 h-3.5 ${location.trend === 'rising' ? 'text-crowd-high' :
+                            location.trend === 'falling' ? 'text-crowd-low' :
+                              'text-muted-foreground'
+                          }`} />
                         {location.trend}
                       </span>
                     </div>

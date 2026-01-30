@@ -108,8 +108,11 @@ function getTimeMultiplier(hour: number, type: Location['type'], locationId: str
     }
   }
 
-  const amplitudeVariation = 0.7 + rand() * 0.5;
-  const noise = (rand() - 0.5) * 0.25; // Increase noise
+  // Create a more realistic curve - if base value is 0 (closed/empty), ensure result is 0
+  if (baseValue === 0) return 0;
+
+  const amplitudeVariation = 0.7 + rand() * 0.6; // Increased variation
+  const noise = (rand() - 0.5) * 0.35; // Increased noise significantly
 
   const finalValue = (baseValue * dayMultiplier * amplitudeVariation) + noise;
   return Math.max(0.00, Math.min(1.0, finalValue)); // Ensure 0-1 range
