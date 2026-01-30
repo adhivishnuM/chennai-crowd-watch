@@ -9,6 +9,10 @@ export default defineConfig(({ mode }) => ({
     host: true,
     port: 8081,
     strictPort: true,
+    headers: {
+      "Cross-Origin-Opener-Policy": "unsafe-none",
+      "Cross-Origin-Embedder-Policy": "unsafe-none",
+    },
   },
   plugins: [react()],
   resolve: {

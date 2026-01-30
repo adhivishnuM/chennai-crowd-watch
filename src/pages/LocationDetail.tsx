@@ -7,7 +7,7 @@ import { chennaiLocations } from '@/data/mockLocations';
 import { CrowdBadge } from '@/components/CrowdBadge';
 import { PopularTimesChart } from '@/components/PopularTimesChart';
 import { Progress } from '@/components/ui/progress';
-import { useMode } from '@/context/ModeContext';
+import { useAuth } from '@/context/AuthContext';
 import { LocationTypeIcon } from '@/components/LocationTypeIcon';
 
 const generateTrendData = () => {
@@ -24,7 +24,7 @@ const generateTrendData = () => {
 export default function LocationDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { mode } = useMode();
+  const { role } = useAuth();
   const location = chennaiLocations.find(loc => loc.id === id);
 
   if (!location) {
@@ -96,7 +96,7 @@ export default function LocationDetail() {
           </div>
 
           <div className="grid grid-cols-4 gap-3">
-            {mode === 'admin' ? (
+            {role === 'admin' ? (
               <div className="text-center p-3 bg-secondary rounded-xl">
                 <Users className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
                 <div className="text-lg font-semibold tabular-nums">

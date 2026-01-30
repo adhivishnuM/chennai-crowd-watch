@@ -1,19 +1,34 @@
-import { ModeProvider, useMode } from '@/context/ModeContext';
-import { Navbar } from '@/components/Navbar';
-import PublicHome from './PublicHome';
-import BestTimes from './BestTimes';
-import Transport from './Transport';
-import LocationDetail from './LocationDetail';
-import AdminPanel from './AdminPanel';
-import { AnimatePresence, motion } from 'framer-motion';
-import { Routes, Route, useLocation } from 'react-router-dom';
-import { Map, Clock, User, Bus } from 'lucide-react';
-import { NavLink } from '@/components/NavLink';
+import { useAuth } from "@/context/AuthContext";
+import { Navbar } from "@/components/Navbar";
+import PublicHome from "./PublicHome";
+import BestTimes from "./BestTimes";
+import Transport from "./Transport";
+import LocationDetail from "./LocationDetail";
+import AdminPanel from "./AdminPanel";
+import { AnimatePresence, motion } from "framer-motion";
+import { Routes, Route, useLocation, Navigate } from "react-router-dom";
+import { Map, Clock, Bus } from "lucide-react";
+import { NavLink } from "@/components/NavLink";
+
+function AdminRoute() {
+  const { user, role, loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+  if (!user || role !== "admin") {
+    return <Navigate to="/" replace />;
+  }
+  return <AdminPanel />;
+}
 
 function MobileTabBar() {
-  const { mode } = useMode();
-
-  if (mode === 'admin') return null;
+  const location = useLocation();
+  const isAdmin = location.pathname.startsWith("/admin");
+  if (isAdmin) return null;
 
   return (
     <motion.nav
@@ -54,14 +69,25 @@ function MobileTabBar() {
 }
 
 function AppContent() {
-  const { mode } = useMode();
   const location = useLocation();
+  const isAdminRoute = location.pathname.startsWith("/admin");
 
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
       <AnimatePresence mode="wait">
-        {mode === 'public' ? (
+        {isAdminRoute ? (
+          <motion.div
+            key="admin"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <Routes location={location}>
+              <Route path="/admin/*" element={<AdminRoute />} />
+            </Routes>
+          </motion.div>
+        ) : (
           <motion.div
             key="public"
             initial={{ opacity: 0 }}
@@ -76,15 +102,6 @@ function AppContent() {
               <Route path="/location/:id" element={<LocationDetail />} />
             </Routes>
           </motion.div>
-        ) : (
-          <motion.div
-            key="admin"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <AdminPanel />
-          </motion.div>
         )}
       </AnimatePresence>
       <MobileTabBar />
@@ -93,9 +110,13 @@ function AppContent() {
 }
 
 export default function Index() {
-  return (
-    <ModeProvider>
-      <AppContent />
-    </ModeProvider>
-  );
+  const { loading } = useAuth();
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+  return <AppContent />;
 }

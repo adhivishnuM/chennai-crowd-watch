@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { LayoutDashboard, MapPin, Video, Upload, BarChart3, Settings, ChevronLeft, Globe } from 'lucide-react';
+import { LayoutDashboard, MapPin, Video, Upload, BarChart3, Settings, ChevronLeft, Globe, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import AdminDashboard from './admin/AdminDashboard';
 import AdminLocations from './admin/AdminLocations';
@@ -9,8 +9,9 @@ import AdminLiveCCTV from './admin/AdminLiveCCTV';
 import AdminVideoUpload from './admin/AdminVideoUpload';
 import AdminAnalytics from './admin/AdminAnalytics';
 import AdminSettings from './admin/AdminSettings';
+import AdminUsers from './admin/AdminUsers';
 
-export type AdminPage = 'dashboard' | 'locations' | 'cameras' | 'live-cctv' | 'upload' | 'analytics' | 'settings';
+export type AdminPage = 'dashboard' | 'locations' | 'cameras' | 'live-cctv' | 'upload' | 'analytics' | 'users' | 'settings';
 
 const navItems: { id: AdminPage; label: string; icon: typeof LayoutDashboard }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -19,6 +20,7 @@ const navItems: { id: AdminPage; label: string; icon: typeof LayoutDashboard }[]
   { id: 'live-cctv', label: 'Live CCTV', icon: Globe },
   { id: 'upload', label: 'Video Upload', icon: Upload },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+  { id: 'users', label: 'Users', icon: Users },
   { id: 'settings', label: 'Settings', icon: Settings },
 ];
 
@@ -34,6 +36,7 @@ export default function AdminPanel() {
       case 'live-cctv': return <AdminLiveCCTV />;
       case 'upload': return <AdminVideoUpload />;
       case 'analytics': return <AdminAnalytics />;
+      case 'users': return <AdminUsers />;
       case 'settings': return <AdminSettings />;
       default: return <AdminDashboard onNavigate={setActivePage} />;
     }
