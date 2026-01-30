@@ -1,24 +1,15 @@
 import { useEffect, useRef, useMemo } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { motion } from 'framer-motion';
 import 'leaflet/dist/leaflet.css';
-import { Location, CrowdLevel } from '@/data/mockLocations';
+import { Location } from '@/data/mockLocations';
 import { CrowdBadge } from './CrowdBadge';
-import { Users, TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import CountUp from 'react-countup';
-import { useMode } from '@/context/ModeContext';
+import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 
-// Chennai center coordinates
 const CHENNAI_CENTER: [number, number] = [13.0500, 80.2500];
 const DEFAULT_ZOOM = 12;
 
-interface MapRecenterProps {
-  lat: number;
-  lng: number;
-}
-
-function MapRecenter({ lat, lng }: MapRecenterProps) {
+function MapRecenter({ lat, lng }: { lat: number; lng: number }) {
   const map = useMap();
   useEffect(() => {
     map.setView([lat, lng], map.getZoom());
@@ -35,18 +26,12 @@ interface CrowdMapProps {
 
 export function CrowdMap({ locations, onLocationSelect, onNavigate, selectedLocation }: CrowdMapProps) {
   const mapRef = useRef<L.Map>(null);
-  const { mode } = useMode();
 
   const TrendIcon = (trend: Location['trend']) => {
-    const icons = {
-      rising: TrendingUp,
-      falling: TrendingDown,
-      stable: Minus,
-    };
+    const icons = { rising: TrendingUp, falling: TrendingDown, stable: Minus };
     return icons[trend];
   };
 
-  // Memoize icons to prevent re-creation on every render
   const icons = useMemo(() => {
     const createIcon = (color: string) => L.divIcon({
       className: 'custom-marker',
@@ -69,7 +54,7 @@ export function CrowdMap({ locations, onLocationSelect, onNavigate, selectedLoca
   }, []);
 
   return (
-    <div className="w-full h-full rounded-2xl overflow-hidden shadow-glass">
+    <div className="w-full h-full">
       <MapContainer
         center={CHENNAI_CENTER}
         zoom={DEFAULT_ZOOM}
@@ -100,52 +85,28 @@ export function CrowdMap({ locations, onLocationSelect, onNavigate, selectedLoca
               }}
             >
               <Popup className="custom-popup">
-                <div className="p-4 min-w-[240px]">
-                  <div className="flex items-start justify-between gap-2 mb-3">
+                <div className="p-4 min-w-[220px]">
+                  <div className="flex items-start justify-between gap-3 mb-3">
                     <div>
                       <h3 className="font-semibold text-foreground">{location.name}</h3>
                       <p className="text-xs text-muted-foreground">{location.address}</p>
                     </div>
-                    <CrowdBadge level={location.crowdLevel} size="sm" />
+                    <CrowdBadge level={location.crowdLevel} size="sm" showPulse={false} />
                   </div>
 
-                  {location.crowdLevel === 'high' && (
-                    <div className="mb-3 p-2 bg-destructive/10 border border-destructive/20 rounded-lg">
-                      <div className="flex items-start gap-2">
-                        <div className="mt-0.5 text-destructive">⚠️</div>
-                        <div>
-                          <p className="text-xs font-semibold text-destructive">High Density Zone</p>
-                          <p className="text-[10px] text-destructive/80 leading-tight mt-0.5">
-                            Public Safety Redirect Active: Please avoid this area. Security monitoring intense.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  <div className="space-y-2 mb-3">
-                    {mode === 'admin' && (
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="flex items-center gap-1.5 text-muted-foreground">
-                          <Users className="w-4 h-4" />
-                          Current
-                        </span>
-                        <span className="font-semibold tabular-nums">
-                          ~<CountUp end={location.currentCount} duration={1} separator="," /> people
-                        </span>
-                      </div>
-                    )}
-                    <div className="flex items-center justify-between text-sm">
+                  <div className="space-y-2 mb-4 text-sm">
+                    <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Capacity</span>
-                      <span className="font-medium">{capacityPercentage}% full</span>
+                      <span className="font-medium">{capacityPercentage}%</span>
                     </div>
-                    <div className="flex items-center justify-between text-sm">
+                    <div className="flex items-center justify-between">
                       <span className="text-muted-foreground">Trend</span>
                       <span className="flex items-center gap-1 capitalize">
-                        <Icon className={`w-4 h-4 ${location.trend === 'rising' ? 'text-crowd-high' :
+                        <Icon className={`w-3.5 h-3.5 ${
+                          location.trend === 'rising' ? 'text-crowd-high' :
                           location.trend === 'falling' ? 'text-crowd-low' :
-                            'text-muted-foreground'
-                          }`} />
+                          'text-muted-foreground'
+                        }`} />
                         {location.trend}
                       </span>
                     </div>

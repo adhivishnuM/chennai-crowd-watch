@@ -1,4 +1,3 @@
-import { motion } from 'framer-motion';
 import { BarChart, Bar, XAxis, ResponsiveContainer, Cell, Tooltip } from 'recharts';
 
 interface PopularTime {
@@ -21,10 +20,10 @@ export function PopularTimesChart({ data, compact = false }: PopularTimesChartPr
     .map((item, index) => {
       const hourInt = parseInt(item.hour);
       let hourLabel = '';
-      if (hourInt === 0) hourLabel = '12am';
-      else if (hourInt === 12) hourLabel = '12pm';
-      else if (hourInt > 12) hourLabel = `${hourInt - 12}pm`;
-      else hourLabel = `${hourInt}am`;
+      if (hourInt === 0) hourLabel = '12a';
+      else if (hourInt === 12) hourLabel = '12p';
+      else if (hourInt > 12) hourLabel = `${hourInt - 12}p`;
+      else hourLabel = `${hourInt}a`;
 
       return {
         hour: hourLabel,
@@ -35,8 +34,7 @@ export function PopularTimesChart({ data, compact = false }: PopularTimesChartPr
     })
     .filter(item => item.originalHour >= 6 && item.originalHour <= 23);
 
-  const getBarColor = (value: number, isCurrent: boolean) => {
-    // REMOVED: if (isCurrent) return 'hsl(var(--primary))'; // Don't make it black
+  const getBarColor = (value: number) => {
     if (value < 40) return 'hsl(var(--crowd-low))';
     if (value < 70) return 'hsl(var(--crowd-medium))';
     return 'hsl(var(--crowd-high))';
@@ -50,7 +48,6 @@ export function PopularTimesChart({ data, compact = false }: PopularTimesChartPr
 
   const currentVal = data[currentHourIndex]?.crowdLevel || 0;
 
-  // Compact mode for cards - just the chart, no header/legend
   if (compact) {
     return (
       <div className="w-full h-full">
@@ -61,16 +58,14 @@ export function PopularTimesChart({ data, compact = false }: PopularTimesChartPr
               axisLine={false}
               tickLine={false}
               tick={{ fontSize: 8, fill: 'hsl(var(--muted-foreground))' }}
-              interval={3}
+              interval={4}
             />
             <Bar dataKey="value" radius={[2, 2, 0, 0]}>
               {chartData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
-                  fill={getBarColor(entry.value, entry.isCurrent)}
-                  opacity={entry.isCurrent ? 1 : 0.6}
-                  stroke={entry.isCurrent ? 'hsl(var(--primary))' : 'none'}
-                  strokeWidth={entry.isCurrent ? 1 : 0}
+                  fill={getBarColor(entry.value)}
+                  opacity={entry.isCurrent ? 1 : 0.5}
                 />
               ))}
             </Bar>
@@ -80,22 +75,15 @@ export function PopularTimesChart({ data, compact = false }: PopularTimesChartPr
     );
   }
 
-  // Full mode with header and legend
   return (
-    <motion.div
-      className="w-full"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: 0.2 }}
-    >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-semibold">Popular Times</h3>
-        <span className="text-sm text-muted-foreground">
-          Usually <span className="font-medium text-foreground">{getBusynessLabel(currentVal)}</span> at this time
+    <div className="w-full">
+      <div className="flex items-center justify-between mb-3 text-sm">
+        <span className="text-muted-foreground">
+          Usually <span className="font-medium text-foreground">{getBusynessLabel(currentVal)}</span> now
         </span>
       </div>
 
-      <ResponsiveContainer width="100%" height={120}>
+      <ResponsiveContainer width="100%" height={100}>
         <BarChart data={chartData} barCategoryGap={2}>
           <XAxis
             dataKey="hour"
@@ -110,51 +98,41 @@ export function PopularTimesChart({ data, compact = false }: PopularTimesChartPr
               if (active && payload && payload.length) {
                 const value = payload[0].value as number;
                 return (
-                  <div className="glass-card px-3 py-2 text-sm">
-                    <p className="font-medium">{getBusynessLabel(value)}</p>
-                    <p className="text-xs text-muted-foreground">{value}% capacity</p>
+                  <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-lg text-sm">
+                    <p className="font-medium capitalize">{getBusynessLabel(value)}</p>
+                    <p className="text-xs text-muted-foreground">{value}%</p>
                   </div>
                 );
               }
               return null;
             }}
           />
-          <Bar
-            dataKey="value"
-            radius={[4, 4, 0, 0]}
-          >
+          <Bar dataKey="value" radius={[3, 3, 0, 0]}>
             {chartData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
-                fill={getBarColor(entry.value, entry.isCurrent)}
-                // Highlight current time with full opacity and a distinct border/glow effect if needed
+                fill={getBarColor(entry.value)}
                 opacity={entry.isCurrent ? 1 : 0.4}
-                stroke={entry.isCurrent ? 'hsl(var(--foreground))' : 'none'}
-                strokeWidth={entry.isCurrent ? 2 : 0}
               />
             ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
 
-      <div className="flex items-center justify-center gap-4 mt-2 text-xs">
+      <div className="flex items-center justify-center gap-4 mt-3 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-crowd-low opacity-60" />
-          <span className="text-muted-foreground">Quiet</span>
+          <div className="w-2 h-2 rounded-sm bg-crowd-low" />
+          <span>Quiet</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-crowd-medium opacity-60" />
-          <span className="text-muted-foreground">Moderate</span>
+          <div className="w-2 h-2 rounded-sm bg-crowd-medium" />
+          <span>Moderate</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm bg-crowd-high opacity-60" />
-          <span className="text-muted-foreground">Busy</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-sm border-2 border-foreground bg-transparent" />
-          <span className="text-muted-foreground">Now</span>
+          <div className="w-2 h-2 rounded-sm bg-crowd-high" />
+          <span>Busy</span>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
