@@ -11,8 +11,6 @@ interface LocationCardProps {
 }
 
 export function LocationCard({ location, onClick, index = 0 }: LocationCardProps) {
-  const capacityPercentage = Math.round((location.currentCount / location.capacity) * 100);
-
   const TrendIcon = {
     rising: TrendingUp,
     falling: TrendingDown,
@@ -44,7 +42,6 @@ export function LocationCard({ location, onClick, index = 0 }: LocationCardProps
             <p className="text-sm text-muted-foreground truncate">{location.address}</p>
 
             <div className="flex items-center gap-4 mt-2">
-              <span className="text-sm text-muted-foreground">{capacityPercentage}% full</span>
               <div className={`flex items-center gap-1 ${trendColor}`}>
                 <TrendIcon className="w-3.5 h-3.5" />
                 <span className="text-xs capitalize">{location.trend}</span>

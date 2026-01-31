@@ -12,10 +12,11 @@ const TransportPage = () => {
     const updateData = () => {
         setIsUpdating(true);
         const { buses: newBuses, trains: newTrains } = getTransportData();
-        setBuses(newBuses);
-        setTrains(newTrains);
+        const sortedBuses = [...newBuses].sort((a, b) => b.occupation - a.occupation);
+        const sortedTrains = [...newTrains].sort((a, b) => b.occupation - a.occupation);
+        setBuses(sortedBuses);
+        setTrains(sortedTrains);
         setLastUpdate(new Date());
-
         setTimeout(() => setIsUpdating(false), 500);
     };
 
@@ -34,6 +35,14 @@ const TransportPage = () => {
         return <Minus size={12} className="text-gray-400" />;
     };
 
+    const hour = new Date().getHours();
+    const isPeak = (hour >= 7 && hour <= 10) || (hour >= 16 && hour <= 20);
+    const crowdHint = isPeak
+        ? 'Rush hour — expect higher crowds'
+        : hour >= 22 || hour < 5
+            ? 'Night — lighter crowds on most routes'
+            : 'Off-peak — moderate crowds';
+
     return (
         <motion.div
             className="min-h-screen bg-background pt-14 pb-8"
@@ -43,10 +52,11 @@ const TransportPage = () => {
         >
             <div className="container mx-auto px-4 max-w-4xl">
                 <header className="mb-6">
-                    <div className="flex items-center justify-between">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                         <div>
-                            <h1 className="text-3xl font-bold mb-1">Public Transport Live</h1>
+                            <h1 className="text-2xl sm:text-3xl font-bold mb-1">Public Transport Live</h1>
                             <p className="text-muted-foreground">Real-time occupation levels in Chennai</p>
+                            <p className="text-xs text-muted-foreground mt-1.5">{crowdHint}</p>
                         </div>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <RefreshCw className={`w-4 h-4 ${isUpdating ? 'animate-spin text-primary' : ''}`} />

@@ -46,10 +46,10 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
   return (
     <div className="space-y-8 max-w-6xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">System overview and quick actions</p>
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight">Dashboard</h1>
+          <p className="text-sm text-muted-foreground">System overview and quick actions</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm">Real-time</Button>
@@ -109,8 +109,8 @@ export default function AdminDashboard({ onNavigate }: AdminDashboardProps) {
                   transition={{ delay: 0.05 * index }}
                 >
                   <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${activity.type === 'alert' ? 'bg-crowd-high/10 text-crowd-high' :
-                      activity.type === 'trend' ? 'bg-crowd-medium/10 text-crowd-medium' :
-                        'bg-secondary text-muted-foreground'
+                    activity.type === 'trend' ? 'bg-crowd-medium/10 text-crowd-medium' :
+                      'bg-secondary text-muted-foreground'
                     }`}>
                     {activity.type === 'alert' ? <Bell className="w-4 h-4" /> :
                       activity.type === 'trend' ? <TrendingUp className="w-4 h-4" /> :

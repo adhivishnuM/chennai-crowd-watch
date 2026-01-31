@@ -64,14 +64,14 @@ export function Navbar() {
       animate={{ y: 0 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
     >
-      <div className="w-full mx-auto px-6">
-        <div className="flex items-center justify-between h-14">
+      <div className="w-full mx-auto px-4 sm:px-6">
+        <div className="flex items-center justify-between h-14 gap-2">
           {/* Logo */}
           <div
             onClick={handleLogoClick}
-            className="cursor-pointer flex items-center gap-2.5"
+            className="cursor-pointer flex items-center gap-2 flex-shrink-0"
           >
-            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
               <MapPin className="w-4 h-4 text-primary-foreground" />
             </div>
             <span className="font-semibold text-lg tracking-tight">Crowdex</span>
@@ -277,46 +277,52 @@ export function Navbar() {
         <AnimatePresence>
           {mobileMenuOpen && (
             <motion.div
-              className="md:hidden py-4 border-t border-border"
+              className="md:hidden py-4 border-t border-border overflow-hidden"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
               exit={{ opacity: 0, height: 0 }}
             >
-              <div className="flex flex-col gap-4">
-                <div className="flex flex-col gap-1">
-                  <StyledNavLink
-                    to="/"
-                    end
-                    className="px-4 py-2.5 rounded-lg text-sm font-medium"
+              <div className="flex flex-col gap-2 px-2">
+                <StyledNavLink
+                  to="/"
+                  end
+                  className="px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors w-full block"
+                  activeClassName="bg-secondary text-foreground"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Map
+                </StyledNavLink>
+                <StyledNavLink
+                  to="/transport"
+                  className="px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors w-full block"
+                  activeClassName="bg-secondary text-foreground"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Transport
+                </StyledNavLink>
+                <StyledNavLink
+                  to="/best-times"
+                  className="px-4 py-3 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors w-full block"
+                  activeClassName="bg-secondary text-foreground"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Best Times
+                </StyledNavLink>
+                {role === "admin" && (
+                  <NavLink
+                    to="/admin"
+                    className={({ isActive }) =>
+                      `px-4 py-3 rounded-xl text-sm font-medium flex items-center gap-2 w-full transition-colors ${isActive
+                        ? "bg-secondary text-foreground"
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                      }`
+                    }
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Map
-                  </StyledNavLink>
-                  <StyledNavLink
-                    to="/transport"
-                    className="px-4 py-2.5 rounded-lg text-sm font-medium"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Transport
-                  </StyledNavLink>
-                  <StyledNavLink
-                    to="/best-times"
-                    className="px-4 py-2.5 rounded-lg text-sm font-medium"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    Best Times
-                  </StyledNavLink>
-                  {role === "admin" && (
-                    <NavLink
-                      to="/admin"
-                      className="px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      <Settings className="w-4 h-4" />
-                      Admin
-                    </NavLink>
-                  )}
-                </div>
+                    <Settings className="w-4 h-4" />
+                    Admin
+                  </NavLink>
+                )}
               </div>
             </motion.div>
           )}

@@ -63,7 +63,7 @@ export default function LocationDetail() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      <div className="max-w-3xl mx-auto px-6">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
         {/* Back */}
         <button
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 text-sm"
@@ -95,7 +95,7 @@ export default function LocationDetail() {
             <CrowdBadge level={location.crowdLevel} size="md" />
           </div>
 
-          <div className="grid grid-cols-4 gap-3">
+          <div className={`grid gap-3 ${role === 'admin' ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-2 sm:grid-cols-3'}`}>
             {role === 'admin' ? (
               <div className="text-center p-3 bg-secondary rounded-xl">
                 <Users className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
@@ -111,11 +111,13 @@ export default function LocationDetail() {
                 <div className="text-xs text-muted-foreground">level</div>
               </div>
             )}
-            <div className="text-center p-3 bg-secondary rounded-xl">
-              <BarChart3 className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
-              <div className="text-lg font-semibold tabular-nums">{capacityPercentage}%</div>
-              <div className="text-xs text-muted-foreground">capacity</div>
-            </div>
+            {role === 'admin' && (
+              <div className="text-center p-3 bg-secondary rounded-xl">
+                <BarChart3 className="w-4 h-4 text-muted-foreground mx-auto mb-1" />
+                <div className="text-lg font-semibold tabular-nums">{capacityPercentage}%</div>
+                <div className="text-xs text-muted-foreground">capacity</div>
+              </div>
+            )}
             <div className="text-center p-3 bg-secondary rounded-xl">
               <TrendIcon className={`w-4 h-4 mx-auto mb-1 ${trendColor}`} />
               <div className="text-lg font-semibold capitalize">{location.trend}</div>
@@ -128,13 +130,15 @@ export default function LocationDetail() {
             </div>
           </div>
 
-          <div className="mt-5">
-            <div className="flex items-center justify-between text-sm mb-2">
-              <span className="text-muted-foreground">Capacity</span>
-              <span className="font-medium">{capacityPercentage}%</span>
+          {role === 'admin' && (
+            <div className="mt-5">
+              <div className="flex items-center justify-between text-sm mb-2">
+                <span className="text-muted-foreground">Capacity</span>
+                <span className="font-medium">{capacityPercentage}%</span>
+              </div>
+              <Progress value={capacityPercentage} className="h-2" />
             </div>
-            <Progress value={capacityPercentage} className="h-2" />
-          </div>
+          )}
         </motion.div>
 
         {/* Best Time */}

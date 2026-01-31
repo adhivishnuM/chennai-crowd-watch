@@ -66,25 +66,11 @@ export function MapDashboard() {
           selectedLocation={selectedLocation}
         />
 
-        {/* Quick Stats */}
-        <div className="absolute top-4 left-4 flex gap-2 z-10">
-          <div className="bg-card/90 backdrop-blur-sm border border-border rounded-full px-3 py-1.5 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-crowd-low" />
-            <span className="text-sm font-medium">{crowdStats.low}</span>
-          </div>
-          <div className="bg-card/90 backdrop-blur-sm border border-border rounded-full px-3 py-1.5 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-crowd-medium" />
-            <span className="text-sm font-medium">{crowdStats.medium}</span>
-          </div>
-          <div className="bg-card/90 backdrop-blur-sm border border-border rounded-full px-3 py-1.5 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-crowd-high" />
-            <span className="text-sm font-medium">{crowdStats.high}</span>
-          </div>
-        </div>
+
 
         {/* Mobile List Toggle */}
         <button
-          className="lg:hidden absolute bottom-6 left-1/2 -translate-x-1/2 bg-card border border-border rounded-full px-5 py-2.5 flex items-center gap-2 z-10 shadow-lg"
+          className="lg:hidden absolute bottom-20 left-1/2 -translate-x-1/2 bg-card border border-border rounded-full px-5 py-2.5 flex items-center gap-2 z-10 shadow-lg"
           onClick={() => setShowListMobile(!showListMobile)}
         >
           <List className="w-4 h-4" />
@@ -161,7 +147,7 @@ export function MapDashboard() {
         {
           showListMobile && (
             <motion.div
-              className="lg:hidden fixed inset-x-0 bottom-0 z-30 bg-background rounded-t-2xl shadow-lg border-t border-border"
+              className="lg:hidden fixed inset-x-0 bottom-16 z-30 bg-background rounded-t-2xl shadow-lg border-t border-border max-h-[70vh]"
               initial={{ y: '100%' }}
               animate={{ y: 0 }}
               exit={{ y: '100%' }}

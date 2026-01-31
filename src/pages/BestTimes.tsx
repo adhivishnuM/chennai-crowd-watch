@@ -39,14 +39,14 @@ export default function BestTimes() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
     >
-      <div className="max-w-5xl mx-auto px-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6">
         {/* Header */}
         <motion.div
           className="mb-8"
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <h1 className="text-2xl font-semibold mb-1">Best Times</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold mb-1">Best Times</h1>
           <p className="text-muted-foreground">Find the best times to visit popular spots</p>
         </motion.div>
 
@@ -63,8 +63,8 @@ export default function BestTimes() {
                 <button
                   key={option.value}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === option.value
-                      ? 'bg-primary text-primary-foreground'
-                      : 'bg-secondary hover:bg-secondary/80 text-foreground'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-secondary hover:bg-secondary/80 text-foreground'
                     }`}
                   onClick={() => setFilter(option.value as FilterType)}
                 >
@@ -149,8 +149,8 @@ export default function BestTimes() {
                   }}
                 >
                   <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${selectedLocations.includes(location.id)
-                      ? 'bg-primary border-primary'
-                      : 'border-border'
+                    ? 'bg-primary border-primary'
+                    : 'border-border'
                     }`}>
                     {selectedLocations.includes(location.id) && (
                       <svg className="w-3 h-3 text-primary-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">

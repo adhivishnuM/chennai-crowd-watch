@@ -26,29 +26,85 @@ function seededRandom(seed: number): () => number {
     };
 }
 
-// Transport-specific time multiplier
+// Per-hour base patterns (like mockLocations) – bus and train, 24 hours
+const busHourPattern: Record<number, number> = {
+    0: 0.08, 1: 0.05, 2: 0.04, 3: 0.06, 4: 0.12, 5: 0.25, 6: 0.55, 7: 0.85, 8: 0.9, 9: 0.75,
+    10: 0.5, 11: 0.45, 12: 0.5, 13: 0.45, 14: 0.5, 15: 0.55, 16: 0.7, 17: 0.9, 18: 0.9, 19: 0.8,
+    20: 0.6, 21: 0.4, 22: 0.25, 23: 0.12,
+};
+const trainHourPattern: Record<number, number> = {
+    0: 0.05, 1: 0.03, 2: 0.02, 3: 0.04, 4: 0.15, 5: 0.4, 6: 0.75, 7: 0.9, 8: 0.95, 9: 0.8,
+    10: 0.55, 11: 0.5, 12: 0.5, 13: 0.5, 14: 0.55, 15: 0.65, 16: 0.8, 17: 0.95, 18: 0.9, 19: 0.75,
+    20: 0.5, 21: 0.35, 22: 0.2, 23: 0.1,
+};
+
+// Route-type modifiers: some routes are consistently busier or quieter
+const busRouteModifier: Record<string, number> = {
+    '21G': 1.15, '29C': 1.2, '102': 1.0, '5C': 0.95, '27C': 1.1, '18': 1.05,
+    '11C': 1.0, '47A': 0.95, '23C': 1.0, '54': 1.05, '15B': 1.0, '70': 1.1,
+};
+
+// Per-route occupation offset so each bus has clearly different occupancy (not all same)
+// High-demand routes: positive offset. Quieter routes: negative offset.
+const busRouteOccupationOffset: Record<string, number> = {
+    '21G': 0.18,   // Broadway–Tambaram: very high demand
+    '29C': 0.15,   // Perambur–Besant Nagar: high
+    '27C': 0.10,   // CMBT–Thiruvanmiyur
+    '70': 0.08,    // Tambaram–T. Nagar
+    '18': 0.05,    // Parry–Vadapalani
+    '102': 0.02,   // Broadway–Kelambakkam
+    '54': 0,       // Koyambedu–OMR
+    '11C': -0.03,  // T. Nagar–Adyar
+    '23C': -0.05,  // Guindy–Central
+    '15B': -0.08,  // Egmore–Velachery
+    '5C': -0.10,   // Broadway–Taramani
+    '47A': -0.12,  // Anna Nagar–Mylapore: relatively lighter
+};
+const trainRouteModifier: Record<string, number> = {
+    'MRTS': 1.1, 'Metro-B': 1.0, 'Suburban': 1.2, 'Metro-G': 1.05, 'EMU': 1.15,
+    'Express': 0.9,
+};
+
+// Late-night bump for airport / last-train hours (22–23) so night isn’t always lowest
+const trainLateNightBump: Record<string, number> = {
+    'Metro-B': 0.25, 'MRTS': 0.1, 'Suburban': 0.05, 'Metro-G': 0.1, 'EMU': 0.05, 'Express': 0.0,
+};
+
 function getTransportTimeMultiplier(hour: number, type: 'bus' | 'train', routeId: string): number {
-    // Rush hours: 8-10 AM and 5-8 PM
-    const isMorningRush = hour >= 8 && hour <= 10;
-    const isEveningRush = hour >= 17 && hour <= 20;
+    const pattern = type === 'bus' ? busHourPattern : trainHourPattern;
+    let baseLoad = pattern[hour] ?? 0.3;
 
-    // Base traffic pattern
-    let baseLoad = 0.3; // Minimum 30% load usually
+    const modifier = type === 'bus'
+        ? (busRouteModifier[routeId] ?? 1.0)
+        : (trainRouteModifier[routeId] ?? 1.0);
+    baseLoad *= modifier;
 
-    if (isMorningRush || isEveningRush) {
-        baseLoad = 0.85; // High load during rush hours
-    } else if (hour >= 23 || hour < 5) {
-        baseLoad = 0.1; // Late night / Early morning
-    } else {
-        baseLoad = 0.5; // Mid-day moderate
+    if (type === 'train' && (hour === 22 || hour === 23)) {
+        baseLoad += trainLateNightBump[routeId] ?? 0;
     }
 
-    // Add randomness based on route ID so not all routes are identical
-    const seed = routeId.charCodeAt(0) + hour;
-    const rng = seededRandom(seed);
-    const variation = (rng() - 0.5) * 0.2; // +/- 10% variation
+    const dayOfWeek = new Date().getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    if (isWeekend) {
+        baseLoad *= 0.85;
+    } else if ((hour >= 7 && hour <= 10) || (hour >= 17 && hour <= 20)) {
+        baseLoad *= 1.05;
+    }
 
-    return Math.max(0, Math.min(1, baseLoad + variation));
+    const seed = routeId.split('').reduce((a, c) => a + c.charCodeAt(0), 0) + hour * 7919 + dayOfWeek * 1337;
+    const rng = seededRandom(seed);
+    const variation = (rng() - 0.5) * 0.18;
+    return Math.max(0.05, Math.min(0.99, baseLoad + variation));
+}
+
+function getTrendFromTime(hour: number, type: 'bus' | 'train'): 'rising' | 'falling' | 'stable' {
+    if (hour >= 5 && hour < 8) return 'rising';
+    if (hour >= 8 && hour <= 10) return 'stable';
+    if (hour > 10 && hour < 16) return 'falling';
+    if (hour >= 16 && hour < 18) return 'rising';
+    if (hour >= 18 && hour <= 20) return 'stable';
+    if (hour > 20) return 'falling';
+    return 'stable';
 }
 
 const baseBuses: Omit<BusRoute, 'occupation' | 'status' | 'nextBus' | 'trend'>[] = [
@@ -98,62 +154,45 @@ function getNextArrival(routeId: string, type: 'bus' | 'train'): number {
 export function getTransportData() {
     const now = new Date();
     const hour = now.getHours();
+    const minute = now.getMinutes();
+    const dayOfWeek = now.getDay();
 
-    // Global minute-level fluctuation
-    const minuteFluctuation = Math.sin(now.getMinutes() / 10) * 0.05;
+    const minuteFluctuation = Math.sin(minute / 10) * 0.05;
+    const trend = getTrendFromTime(hour, 'bus');
 
-    const buses: BusRoute[] = baseBuses.map(bus => {
+    const buses: BusRoute[] = baseBuses.map((bus, index) => {
         const timeMultiplier = getTransportTimeMultiplier(hour, 'bus', bus.id);
-        const randomNoise = (Math.random() - 0.5) * 0.1; // Real-time noise
-
-        // Calculate raw occupation 0-1
-        let rawOccupation = timeMultiplier + minuteFluctuation + randomNoise;
-
-        // Special case: '21G' and '29C' are always crowded
-        if (bus.id === '21G' || bus.id === '29C') {
-            rawOccupation += 0.2;
-        }
-
-        rawOccupation = Math.max(0.1, Math.min(0.99, rawOccupation));
+        const routeOffset = busRouteOccupationOffset[bus.id] ?? 0;
+        const seed = bus.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) + hour * 31 + minute * 17 + dayOfWeek * 7 + index;
+        const rng = seededRandom(seed);
+        const noise = (rng() - 0.5) * 0.14;
+        let rawOccupation = timeMultiplier + routeOffset + minuteFluctuation + noise;
+        rawOccupation = Math.max(0.08, Math.min(0.99, rawOccupation));
         const occupation = Math.round(rawOccupation * 100);
-
-        // Determine trend
-        const prevOccupation = occupation - (randomNoise * 100); // Rough estimate of "previous"
-        const trend = occupation > prevOccupation ? 'rising' : occupation < prevOccupation ? 'falling' : 'stable';
-
         return {
             ...bus,
             occupation,
             status: getStatus(occupation),
             nextBus: getNextArrival(bus.id, 'bus'),
-            trend
+            trend,
         };
     });
 
-    const trains: TrainRoute[] = baseTrains.map(train => {
+    const trainTrend = getTrendFromTime(hour, 'train');
+    const trains: TrainRoute[] = baseTrains.map((train, index) => {
         const timeMultiplier = getTransportTimeMultiplier(hour, 'train', train.id);
-        const randomNoise = (Math.random() - 0.5) * 0.08;
-
-        let rawOccupation = timeMultiplier + minuteFluctuation + randomNoise;
-
-        // Suburban trains are usually crowded
-        if (train.id === 'Suburban' || train.id === 'EMU') {
-            rawOccupation += 0.15;
-        }
-
+        const seed = train.id.charCodeAt(0) + hour * 31 + minute * 17 + dayOfWeek * 7 + index + 1000;
+        const rng = seededRandom(seed);
+        const noise = (rng() - 0.5) * 0.08;
+        let rawOccupation = timeMultiplier + minuteFluctuation + noise;
         rawOccupation = Math.max(0.1, Math.min(0.99, rawOccupation));
         const occupation = Math.round(rawOccupation * 100);
-
-        // Determine trend
-        const prevOccupation = occupation - (randomNoise * 100);
-        const trend = occupation > prevOccupation ? 'rising' : occupation < prevOccupation ? 'falling' : 'stable';
-
         return {
             ...train,
             occupation,
             status: getStatus(occupation),
             nextTrain: getNextArrival(train.id, 'train'),
-            trend
+            trend: trainTrend,
         };
     });
 
