@@ -1,5 +1,6 @@
 import { useAuth } from "@/context/AuthContext";
 import { Navbar } from "@/components/Navbar";
+import { LoadingScreen } from "@/components/LoadingScreen";
 import PublicHome from "./PublicHome";
 import BestTimes from "./BestTimes";
 import Transport from "./Transport";
@@ -13,11 +14,7 @@ import { NavLink } from "@/components/NavLink";
 function AdminRoute() {
   const { user, role, loading } = useAuth();
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
   if (!user || role !== "admin") {
     return <Navigate to="/" replace />;
@@ -112,11 +109,7 @@ function AppContent() {
 export default function Index() {
   const { loading } = useAuth();
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
-      </div>
-    );
+    return <LoadingScreen />;
   }
   return <AppContent />;
 }
