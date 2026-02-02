@@ -202,68 +202,45 @@
   @apply bg-secondary;
 }
 
-/* Refined Apple-style map markers */
-.marker-wrapper {
+/* Map markers */
+.map-marker-container {
   position: relative;
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 24px;
+  height: 24px;
 }
 
-.marker-core {
-  position: relative;
-  width: 14px;
-  height: 14px;
+.map-marker-dot {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  box-shadow: 
-    0 0 0 3px rgba(255, 255, 255, 0.95),
-    0 2px 8px rgba(0, 0, 0, 0.15),
-    0 4px 16px rgba(0, 0, 0, 0.1);
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
   z-index: 2;
-  transition: transform 0.2s ease;
 }
 
-.marker-core:hover {
-  transform: scale(1.15);
-}
-
-.marker-inner {
+.map-marker-pulse {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  width: 5px;
-  height: 5px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.9);
+  opacity: 0.3;
+  animation: pulse-ring 2s ease-out infinite;
 }
 
-.marker-pulse {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  opacity: 0.25;
-  animation: marker-pulse 2.5s ease-out infinite;
-}
-
-@keyframes marker-pulse {
+@keyframes pulse-ring {
   0% {
-    transform: translate(-50%, -50%) scale(0.5);
-    opacity: 0.4;
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.3;
   }
   100% {
-    transform: translate(-50%, -50%) scale(1.5);
+    transform: translate(-50%, -50%) scale(1.8);
     opacity: 0;
   }
-}
-
-/* Custom marker hover state */
-.custom-marker:hover .marker-core {
-  transform: scale(1.2);
 }
