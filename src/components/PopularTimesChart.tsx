@@ -76,15 +76,15 @@ export function PopularTimesChart({ data, compact = false }: PopularTimesChartPr
   }
 
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-between mb-3 text-sm">
+    <div className="w-full py-1">
+      <div className="flex items-center justify-between mb-4 text-sm">
         <span className="text-muted-foreground">
           Usually <span className="font-medium text-foreground">{getBusynessLabel(currentVal)}</span> now
         </span>
       </div>
 
-      <ResponsiveContainer width="100%" height={100}>
-        <BarChart data={chartData} barCategoryGap={2}>
+      <ResponsiveContainer width="100%" height={88}>
+        <BarChart data={chartData} barCategoryGap={3}>
           <XAxis
             dataKey="hour"
             axisLine={false}
@@ -93,43 +93,43 @@ export function PopularTimesChart({ data, compact = false }: PopularTimesChartPr
             interval={2}
           />
           <Tooltip
-            cursor={false}
+            cursor={{ fill: 'hsl(var(--muted) / 0.15)', radius: 4 }}
             content={({ active, payload }) => {
               if (active && payload && payload.length) {
                 const value = payload[0].value as number;
                 return (
-                  <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-lg text-sm">
+                  <div className="bg-card border border-border rounded-lg px-3 py-2 shadow-lg text-xs">
                     <p className="font-medium capitalize">{getBusynessLabel(value)}</p>
-                    <p className="text-xs text-muted-foreground">{value}%</p>
+                    <p className="text-muted-foreground mt-0.5">{value}% capacity</p>
                   </div>
                 );
               }
               return null;
             }}
           />
-          <Bar dataKey="value" radius={[3, 3, 0, 0]}>
+          <Bar dataKey="value" radius={[4, 4, 0, 0]}>
             {chartData.map((entry, index) => (
               <Cell
                 key={`cell-${index}`}
                 fill={getBarColor(entry.value)}
-                opacity={entry.isCurrent ? 1 : 0.4}
+                opacity={entry.isCurrent ? 1 : 0.35}
               />
             ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
 
-      <div className="flex items-center justify-center gap-4 mt-3 text-xs text-muted-foreground">
+      <div className="flex items-center justify-center gap-5 mt-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-sm bg-crowd-low" />
+          <div className="w-2 h-2 rounded-full bg-crowd-low" />
           <span>Quiet</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-sm bg-crowd-medium" />
+          <div className="w-2 h-2 rounded-full bg-crowd-medium" />
           <span>Moderate</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <div className="w-2 h-2 rounded-sm bg-crowd-high" />
+          <div className="w-2 h-2 rounded-full bg-crowd-high" />
           <span>Busy</span>
         </div>
       </div>

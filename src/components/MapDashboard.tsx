@@ -142,56 +142,57 @@ export function MapDashboard() {
         <ChevronUp className={`w-4 h-4 transition-transform ${panelExpanded ? 'rotate-90' : '-rotate-90'}`} />
       </button>
 
-      {/* Mobile Bottom Sheet */}
+      {/* Mobile Bottom Sheet - More fluid */}
       <AnimatePresence>
-        {
-          showListMobile && (
-            <motion.div
-              className="lg:hidden fixed inset-x-0 bottom-16 z-30 bg-background rounded-t-2xl shadow-lg border-t border-border max-h-[70vh]"
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-            >
-              <div className="p-4">
-                <div className="w-10 h-1 bg-border rounded-full mx-auto mb-4" />
+        {showListMobile && (
+          <motion.div
+            className="lg:hidden fixed inset-x-0 bottom-16 z-30 bg-background/95 backdrop-blur-xl rounded-t-3xl border-t border-border/50 max-h-[70vh]"
+            style={{ boxShadow: '0 -8px 32px rgba(0, 0, 0, 0.08)' }}
+            initial={{ y: '100%' }}
+            animate={{ y: 0 }}
+            exit={{ y: '100%' }}
+            transition={{ type: 'spring', stiffness: 400, damping: 35 }}
+          >
+            <div className="p-4 pt-3">
+              {/* Drag handle */}
+              <div className="w-9 h-1 bg-border/60 rounded-full mx-auto mb-5" />
 
-                {/* Filter */}
-                <ScrollArea className="w-full mb-4" orientation="horizontal">
-                  <div className="flex gap-2 pb-2 w-max">
-                    {locationTypeFilters.map((option) => (
-                      <button
-                        key={option.value}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${filter === option.value
-                          ? 'bg-primary text-primary-foreground'
-                          : 'bg-secondary text-foreground'
-                          }`}
-                        onClick={() => setFilter(option.value as FilterType)}
-                      >
-                        <LocationTypeIcon type={option.value} size={14} />
-                        <span>{option.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </ScrollArea>
+              {/* Filter */}
+              <ScrollArea className="w-full mb-5" orientation="horizontal">
+                <div className="flex gap-2 pb-2 w-max">
+                  {locationTypeFilters.map((option) => (
+                    <button
+                      key={option.value}
+                      className={`flex items-center gap-1.5 px-3.5 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-all duration-200 ${
+                        filter === option.value
+                          ? 'bg-primary text-primary-foreground shadow-sm'
+                          : 'bg-secondary/80 text-foreground hover:bg-secondary'
+                      }`}
+                      onClick={() => setFilter(option.value as FilterType)}
+                    >
+                      <LocationTypeIcon type={option.value} size={14} />
+                      <span>{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </ScrollArea>
 
-                {/* Location List */}
-                <ScrollArea className="h-[50vh]">
-                  <div className="space-y-2 pr-4">
-                    {filteredLocations.map((location, index) => (
-                      <LocationCard
-                        key={location.id}
-                        location={location}
-                        index={index}
-                        onClick={() => handleLocationClick(location)}
-                      />
-                    ))}
-                  </div>
-                </ScrollArea>
-              </div>
-            </motion.div>
-          )
-        }
+              {/* Location List */}
+              <ScrollArea className="h-[48vh]">
+                <div className="space-y-2.5 pr-4">
+                  {filteredLocations.map((location, index) => (
+                    <LocationCard
+                      key={location.id}
+                      location={location}
+                      index={index}
+                      onClick={() => handleLocationClick(location)}
+                    />
+                  ))}
+                </div>
+              </ScrollArea>
+            </div>
+          </motion.div>
+        )}
       </AnimatePresence>
     </div>
   );
