@@ -83,26 +83,24 @@ export function CrowdMap({ locations, onLocationSelect, onNavigate, selectedLoca
   };
 
   const icons = useMemo(() => {
-    const createIcon = (color: string, isUser = false) => L.divIcon({
+    const createIcon = (color: string) => L.divIcon({
       className: 'custom-marker',
       html: `
-        <div class="marker-wrapper">
-          <div class="marker-pulse" style="background: ${color}"></div>
-          <div class="marker-core" style="background: ${color}">
-            <div class="marker-inner"></div>
-          </div>
+        <div class="map-marker-container">
+          <div class="map-marker-dot" style="background: ${color};"></div>
+          <div class="map-marker-pulse" style="background: ${color};"></div>
         </div>
       `,
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
-      popupAnchor: [0, -16],
+      iconSize: [24, 24],
+      iconAnchor: [12, 12],
+      popupAnchor: [0, -12],
     });
 
     return {
       low: createIcon('#22c55e'),
       medium: createIcon('#eab308'),
       high: createIcon('#ef4444'),
-      currentLocation: createIcon(GOOGLE_BLUE, true),
+      currentLocation: createIcon(GOOGLE_BLUE),
     };
   }, []);
 
