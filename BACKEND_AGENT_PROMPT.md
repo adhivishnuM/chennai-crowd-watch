@@ -1,16 +1,12 @@
-# 🤖 CROWDEX BACKEND PROMPT: Python FastAPI with YOLOv8 Detection
+# CROWDEX BACKEND SPECIFICATION
 
-## Your Mission
+## Project Overview
 
-Build and maintain the **Crowdex Backend** – a FastAPI-powered Python server that provides:
-1. **YOLOv8 Person Detection** for live camera feeds and uploaded videos
-2. **RTSP/HLS Camera Streaming** with support for public cameras and custom URLs
-3. **Mock Location Data** for 15 Chennai locations
-4. **WebSocket Streaming** for real-time updates
+FastAPI backend for Crowdex - provides YOLOv8 person detection for live camera feeds and uploaded videos.
 
 ---
 
-## 🏗️ PROJECT STRUCTURE
+## Project Structure
 
 ```
 backend/
@@ -22,7 +18,7 @@ backend/
 │   ├── mock_data.py        # Chennai locations & crowd simulation
 │   └── saved_cameras.json  # Persisted custom cameras
 ├── routers/
-│   ├── locations.py        # Location CRUD endpoints
+│   ├── locations.py        # Location endpoints
 │   ├── camera.py           # Local webcam endpoints
 │   ├── rtsp_camera.py      # RTSP/HLS streaming endpoints
 │   └── upload.py           # Video upload endpoints
@@ -35,15 +31,14 @@ backend/
 
 ---
 
-## 🔧 CORE SERVICES
+## Core Services
 
-### 1. Object Detector (`services/detector.py`)
+### 1. ObjectDetector (services/detector.py)
 
-**Singleton YOLOv8 detector that auto-loads the model:**
+Singleton YOLOv8 detector:
 
 ```python
 class ObjectDetector:
-    """Singleton YOLOv8 person detector"""
     _instance = None
     _model = None
     
@@ -52,118 +47,63 @@ class ObjectDetector:
             cls._instance = super().__new__(cls)
         return cls._instance
     
-    def _load_model(self):
-        """Lazy load YOLOv8 model"""
-        if self._model is None:
-            self._model = YOLO("yolov8n.pt")
-    
     def detect_people(self, frame) -> Tuple[np.ndarray, int]:
         """Detect people in frame, return annotated frame and count"""
-        self._load_model()
+        if self._model is None:
+            self._model = YOLO("yolov8n.pt")
         results = self._model(frame, classes=[0], verbose=False)  # class 0 = person
         annotated_frame = results[0].plot()
         count = len(results[0].boxes)
         return annotated_frame, count
-    
-    def process_frame(self, frame) -> Tuple[np.ndarray, int]:
-        """Wrapper for detect_people"""
-        return self.detect_people(frame)
 ```
 
-**Key Features:**
-- Singleton pattern ensures model loads once
-- Filters to class 0 (person) only
-- Returns annotated frame with bounding boxes + count
-- Uses YOLOv8 nano for speed
+### 2. RTSPCameraService (services/rtsp_camera.py)
 
----
+Manages camera streams with YOLO detection.
 
-### 2. RTSP Camera Service (`services/rtsp_camera.py`)
-
-**Supports multiple stream types:**
+**Supported Stream Types:**
 - RTSP streams
 - HLS (m3u8) streams
 - HTTP streams
-- YouTube Live streams (via yt-dlp)
+- YouTube Live (via yt-dlp)
 
+**Camera Data Structure:**
 ```python
-class RTSPCameraService:
-    """Service for RTSP/HLS camera streams with YOLO detection"""
-    
-    def __init__(self):
-        self.detector = ObjectDetector()
-        self.active_streams: Dict[str, Dict[str, Any]] = {}
-        self._ensure_data_file()
-    
-    # Camera CRUD
-    def get_saved_cameras(self) -> List[dict]
-    def save_camera(self, camera_data: dict) -> dict
-    def delete_camera(self, camera_id: str) -> bool
-    def update_camera(self, camera_id: str, updates: dict) -> bool
-    def get_available_cameras(self) -> List[dict]
-    
-    # Stream management
-    def start_stream(self, camera_id: str, custom_url: Optional[str] = None) -> bool
-    def stop_stream(self, camera_id: str)
-    def stop_all_streams(self)
-    def get_stream_status(self, camera_id: str) -> Optional[dict]
-    
-    # Frame generation
-    async def generate_processed_frames(self, camera_id: str):
-        """Yields: (frame_bytes, person_count)"""
+{
+    "id": "cam_001",
+    "name": "Custom Camera",
+    "url": "rtsp://...",
+    "location": "Chennai",
+    "description": "Description text",
+    "type": "custom",
+    "is_active": False
+}
 ```
 
-**Camera Data Persistence:**
-- Saved to `data/saved_cameras.json`
-- Each camera has: id, name, url, location, description, type
+**Key Methods:**
+- `get_saved_cameras()` - List saved cameras from JSON
+- `save_camera(data)` - Save new camera configuration
+- `delete_camera(id)` - Remove camera
+- `update_camera(id, updates)` - Update camera settings
+- `start_stream(camera_id)` - Begin streaming
+- `stop_stream(camera_id)` - End streaming
+- `generate_processed_frames(camera_id)` - Async generator yielding (frame_bytes, count)
 
-**YouTube Live Support:**
-```python
-def _get_youtube_stream_url(self, youtube_url: str) -> Optional[str]:
-    """Extract direct stream URL using yt-dlp"""
-    # Tries multiple format options for compatibility
-    # Returns direct HLS URL for OpenCV consumption
-```
+**YouTube Support:**
+Uses yt-dlp to extract direct stream URL from YouTube Live links.
 
----
+### 3. VideoProcessor (services/video_processor.py)
 
-### 3. Video Processor (`services/video_processor.py`)
+Processes uploaded videos with YOLO detection.
 
-**Process uploaded videos with YOLO detection:**
-
-```python
-class VideoProcessor:
-    def __init__(self, upload_dir="uploads"):
-        self.upload_dir = upload_dir
-        self.detector = ObjectDetector()
-        self.active_processings = {}  # id -> status dict
-    
-    async def save_upload(self, file_content, filename) -> Tuple[str, str]:
-        """Save uploaded file, return (file_id, file_path)"""
-    
-    async def process_video(self, file_id, file_path, frame_skip=15):
-        """Process video with YOLO detection
-        
-        Args:
-            file_id: Unique identifier
-            file_path: Path to video file
-            frame_skip: Process every Nth frame (higher = faster)
-        """
-    
-    def get_status(self, file_id) -> Optional[dict]:
-        """Get processing status (from memory or saved JSON)"""
-    
-    def get_results_json(self, file_id) -> Optional[dict]:
-        """Get detailed results for export"""
-```
-
-**Processing Features:**
-- Frame skip for speed (1 = all frames, 60 = fastest)
-- Real-time progress updates via WebSocket
-- Live preview frames (base64 encoded)
-- Per-second count aggregation
-- Auto-delete video after processing (save space)
-- Results saved to JSON for persistence
+**Processing Flow:**
+1. Save uploaded file with UUID
+2. Open video with OpenCV
+3. Process every Nth frame (frame_skip parameter)
+4. Track counts per second
+5. Generate statistics
+6. Save results to JSON
+7. Delete video file (save space)
 
 **Status Object:**
 ```python
@@ -182,153 +122,84 @@ class VideoProcessor:
 }
 ```
 
----
+### 4. Mock Data (data/mock_data.py)
 
-### 4. Mock Data (`data/mock_data.py`)
+15 Chennai locations with crowd simulation.
 
-**15 Chennai Locations with crowd simulation:**
+**Location Types:**
+- mall (4 locations)
+- beach (2 locations)
+- park (2 locations)
+- transit (3 locations)
+- market (2 locations)
+- attraction (2 locations)
 
-```python
-LOCATIONS = [
-    # MALLS (4)
-    {"id": "loc_001", "name": "Express Avenue Mall", "type": "mall", 
-     "address": "Whites Road, Royapettah", "lat": 13.0604, "lng": 80.2627, "capacity": 5000},
-    {"id": "loc_002", "name": "Phoenix MarketCity", ...},
-    {"id": "loc_003", "name": "VR Chennai", ...},
-    {"id": "loc_004", "name": "Forum Vijaya Mall", ...},
-    
-    # BEACHES (2)
-    {"id": "loc_005", "name": "Marina Beach", "type": "beach", "capacity": 50000, ...},
-    {"id": "loc_006", "name": "Besant Nagar Beach", ...},
-    
-    # PARKS (2)
-    {"id": "loc_007", "name": "Guindy National Park", "type": "park", ...},
-    {"id": "loc_008", "name": "Semmozhi Poonga", ...},
-    
-    # TRANSIT (3)
-    {"id": "loc_009", "name": "Chennai Central Station", "type": "transit", ...},
-    {"id": "loc_010", "name": "Chennai Egmore Station", ...},
-    {"id": "loc_011", "name": "CMBT Bus Terminus", ...},
-    
-    # MARKETS (2)
-    {"id": "loc_012", "name": "T. Nagar Ranganathan Street", "type": "market", ...},
-    {"id": "loc_013", "name": "Pondy Bazaar", ...},
-    
-    # ATTRACTIONS (2)
-    {"id": "loc_014", "name": "Government Museum", "type": "attraction", ...},
-    {"id": "loc_015", "name": "Valluvar Kottam", ...}
-]
-```
-
-**Crowd Patterns by Type:**
-```python
-CROWD_PATTERNS = {
-    "mall": {"weekday": [...24 hourly values...], "weekend": [...]},
-    "beach": {"weekday": [...], "weekend": [...]},
-    "park": {"weekday": [...], "weekend": [...]},
-    "transit": {"weekday": [...], "weekend": [...]},
-    "market": {"weekday": [...], "weekend": [...]},
-    "attraction": {"weekday": [...], "weekend": [...]}
-}
-```
-
-**Functions:**
-```python
-def get_all_locations() -> List[Dict]:
-    """Get all locations with current crowd status"""
-    # Returns: id, name, type, address, lat, lng, current_count, capacity,
-    #          crowd_level, crowd_percentage, trend, trend_change, last_updated
-
-def get_location_by_id(location_id: str) -> Optional[Dict]:
-    """Get detailed location with popular times and best times"""
-    # Additional fields: today_stats, popular_times, best_times, avoid_times, hourly_data
-
-def generate_popular_times(location_id: str) -> List[Dict]:
-    """Generate 6AM-11PM popular times data"""
-
-def get_best_times(location_id: str) -> Dict:
-    """Get best/avoid time recommendations"""
-```
+**Crowd Patterns:**
+Each type has hourly patterns for weekday/weekend. Patterns return realistic crowd percentages based on time of day.
 
 ---
 
-## 🌐 API ENDPOINTS
+## API Endpoints
 
-### Main App (`main.py`)
+### Main App (main.py)
 
 ```python
 app = FastAPI(title="Crowdex Backend", version="1.0.0")
 
-# CORS - Allow all origins for hackathon
+# CORS - allows all origins
 app.add_middleware(CORSMiddleware, allow_origins=["*"], ...)
 
-# Routers
-app.include_router(locations.router)      # /api/locations/*
-app.include_router(upload.router)         # /api/upload/*
-app.include_router(camera.router)         # /api/camera/*, /ws/camera/*
-app.include_router(rtsp_router)           # /api/rtsp/*, /ws/rtsp/*
-
-# Root endpoints
-@app.get("/")                             # API info
-@app.get("/api/health")                   # Health check
-
-# WebSocket for upload progress
-@app.websocket("/ws/upload/{file_id}/progress")
+# Health check
+@app.get("/api/health")
+async def health():
+    return {"status": "healthy"}
 ```
 
----
-
-### Location Endpoints (`routers/locations.py`)
+### Location Endpoints (routers/locations.py)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/locations` | List all locations with optional `?type=` filter |
-| GET | `/api/locations/{id}` | Get detailed location by ID |
+| GET | `/api/locations` | List all locations |
+| GET | `/api/locations?type=mall` | Filter by type |
+| GET | `/api/locations/{id}` | Get location details |
 
-**Response format for list:**
-```json
-{
-    "locations": [...],
-    "total": 15,
-    "timestamp": "2026-01-31T06:00:00Z"
-}
-```
+**Response Fields:**
+- id, name, type, address, lat, lng
+- current_count, capacity, crowd_level, crowd_percentage
+- trend, trend_change, last_updated
+- popular_times, best_times, avoid_times (for detail endpoint)
 
----
-
-### Camera Endpoints (`routers/camera.py`)
+### Camera Endpoints (routers/camera.py)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/camera/status` | Check if camera is available |
+| GET | `/api/camera/status` | Check camera availability |
 | GET | `/api/camera/frame` | Get single frame with detection |
 
-| WebSocket | Endpoint | Description |
-|-----------|----------|-------------|
-| WS | `/ws/camera/live` | Live count streaming (JSON only) |
-| WS | `/ws/camera/stream` | Live video streaming with detection |
+| WebSocket | Description |
+|-----------|-------------|
+| `/ws/camera/live` | Live count streaming (JSON) |
+| `/ws/camera/stream` | Live video streaming with detection |
 
----
-
-### RTSP Camera Endpoints (`routers/rtsp_camera.py`)
+### RTSP Camera Endpoints (routers/rtsp_camera.py)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| GET | `/api/rtsp/cameras` | List all cameras (public + saved) |
-| POST | `/api/rtsp/saved` | Save a new custom camera |
-| PUT | `/api/rtsp/saved/{id}` | Update a saved camera |
-| DELETE | `/api/rtsp/saved/{id}` | Delete a saved camera |
-| POST | `/api/rtsp/stream/start` | Start a camera stream |
-| POST | `/api/rtsp/stream/stop/{id}` | Stop a camera stream |
+| GET | `/api/rtsp/cameras` | List all cameras |
+| POST | `/api/rtsp/saved` | Save new camera |
+| PUT | `/api/rtsp/saved/{id}` | Update camera |
+| DELETE | `/api/rtsp/saved/{id}` | Delete camera |
+| POST | `/api/rtsp/stream/start` | Start stream |
+| POST | `/api/rtsp/stream/stop/{id}` | Stop stream |
 | GET | `/api/rtsp/stream/status/{id}` | Get stream status |
 
-| WebSocket | Endpoint | Description |
-|-----------|----------|-------------|
-| WS | `/ws/rtsp/stream/{camera_id}` | Live stream with YOLO detection |
+| WebSocket | Description |
+|-----------|-------------|
+| `/ws/rtsp/stream/{camera_id}` | Live stream with YOLO detection |
 
 **WebSocket Data Flow:**
-1. Binary: JPEG frame bytes
-2. JSON: `{"count": int, "camera_id": str, "timestamp": float}`
+1. Send: Binary JPEG frame bytes
+2. Send: JSON `{"count": int, "camera_id": str, "timestamp": float}`
 
 **Create Camera Request:**
 ```python
@@ -339,19 +210,17 @@ class CreateCameraRequest(BaseModel):
     description: Optional[str] = ""
 ```
 
----
-
-### Upload Endpoints (`routers/upload.py`)
+### Upload Endpoints (routers/upload.py)
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `/api/upload/video?frame_skip={n}` | Upload video for processing |
+| POST | `/api/upload/video?frame_skip=15` | Upload video |
 | GET | `/api/upload/{id}/status` | Get processing status |
 | DELETE | `/api/upload/{id}` | Delete upload |
 
-| WebSocket | Endpoint | Description |
-|-----------|----------|-------------|
-| WS | `/ws/upload/{file_id}/progress` | Real-time processing progress |
+| WebSocket | Description |
+|-----------|-------------|
+| `/ws/upload/{file_id}/progress` | Real-time processing progress |
 
 **Upload Response:**
 ```json
@@ -376,7 +245,7 @@ class CreateCameraRequest(BaseModel):
 
 ---
 
-## 📋 REQUIREMENTS
+## Requirements
 
 ```txt
 fastapi
@@ -384,28 +253,23 @@ uvicorn[standard]
 opencv-python
 ultralytics
 python-multipart
-```
-
-**Optional for YouTube streams:**
-```txt
 yt-dlp
 ```
 
 ---
 
-## 🚀 RUNNING THE SERVER
+## Running the Server
 
 ### Development
 ```bash
 cd backend
 python -m venv venv
 venv\Scripts\activate           # Windows
-source venv/bin/activate        # Linux/Mac
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 
-### Production (Docker)
+### Docker
 ```bash
 docker build -t crowdex-backend .
 docker run -p 8000:8000 crowdex-backend
@@ -414,11 +278,11 @@ docker run -p 8000:8000 crowdex-backend
 ### Environment Variables
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `UPLOAD_DIR` | Directory for video uploads | `../uploads` |
+| `UPLOAD_DIR` | Video uploads directory | `../uploads` |
 
 ---
 
-## 🧪 TESTING
+## Testing
 
 ### Health Check
 ```bash
@@ -444,47 +308,18 @@ curl -X POST -F "file=@video.mp4" "http://localhost:8000/api/upload/video?frame_
 # {"id": "uuid", "status": "processing", "frame_skip": 30}
 ```
 
-### WebSocket Test (Python)
-```python
-import asyncio
-import websockets
+---
 
-async def test_camera():
-    async with websockets.connect("ws://localhost:8000/ws/rtsp/stream/cam_001") as ws:
-        async for message in ws:
-            if isinstance(message, bytes):
-                print(f"Received frame: {len(message)} bytes")
-            else:
-                print(f"Detection data: {message}")
-```
+## Key Implementation Notes
+
+1. **Singleton Detector** - YOLOv8 model loads once, shared across requests
+2. **Frame Skip** - Higher values = faster processing, fewer data points
+3. **Video Cleanup** - Videos deleted after processing to save disk space
+4. **Camera Persistence** - Saved to `data/saved_cameras.json`
+5. **CORS Enabled** - Allows all origins for hackathon use
+6. **WebSocket Streaming** - Sends binary frames + JSON detection data alternately
 
 ---
 
-## 🎯 KEY FEATURES SUMMARY
-
-1. **YOLOv8 Person Detection** - Singleton pattern, auto-loading, class 0 filter
-2. **Multiple Stream Support** - RTSP, HLS, HTTP, YouTube Live
-3. **Custom Camera CRUD** - Save, edit, delete cameras to JSON
-4. **Video Processing** - Frame skip, live preview, JSON export
-5. **WebSocket Streaming** - Real-time frames + detection data
-6. **Mock Location Data** - 15 Chennai locations with realistic patterns
-7. **Time-Based Patterns** - Weekday/weekend, hourly crowd simulation
-
----
-
-## ⚠️ IMPORTANT NOTES
-
-1. **Model File**: Ensure `yolov8n.pt` is in the backend directory
-2. **CORS**: Currently allows all origins (`*`) for hackathon
-3. **Video Cleanup**: Videos are auto-deleted after processing
-4. **Saved Cameras**: Persisted to `data/saved_cameras.json`
-5. **Frame Skip**: Higher values = faster processing, less accuracy
-
----
-
-**ENHANCE THE BACKEND. Keep it fast. Keep it reliable. Keep it detecting!** 🚀
-
----
-
-*Document updated: January 31, 2026*
-*Reflects current production backend structure*
+*Document updated: February 1, 2026*
+*Reflects current production backend*

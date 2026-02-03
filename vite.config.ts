@@ -37,12 +37,8 @@ export default defineConfig(({ mode }) => ({
             if (id.includes('framer-motion')) {
               return 'vendor-motion';
             }
-            if (id.includes('@radix-ui')) {
-              return 'vendor-radix';
-            }
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
-              return 'vendor-react-core';
-            }
+            // Group all other dependencies including React, Radix, etc. into a single vendor chunk
+            // This prevents issues with React being undefined in dependent libraries
             return 'vendor';
           }
         },

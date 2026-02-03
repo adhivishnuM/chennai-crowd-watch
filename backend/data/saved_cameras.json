@@ -7,5 +7,23 @@
     "type": "custom",
     "description": "User saved stream",
     "created_at": 1769655037.8136804
+  },
+  {
+    "id": "c87e4b71-8449-43b8-ae7c-171b945a92be",
+    "name": "street",
+    "url": "https://www.youtube.com/watch?v=3LXQWU67Ufk",
+    "location": "Custom",
+    "type": "custom",
+    "description": "User saved stream",
+    "created_at": 1770000918.7365909
+  },
+  {
+    "id": "a8f961b8-94e6-4530-8f15-0212a015fcfb",
+    "name": "beach view",
+    "url": "https://www.youtube.com/watch?v=3qqikKk6dlY",
+    "location": "Custom",
+    "type": "custom",
+    "description": "User saved stream",
+    "created_at": 1770012357.2457447
   }
 ]
