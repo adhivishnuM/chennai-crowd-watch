@@ -2,12 +2,12 @@ import React, { createContext, useContext, useEffect, useState, ReactNode } from
 import {
   User,
   onAuthStateChanged,
-  signInWithRedirect,
-  getRedirectResult,
+  signInWithPopup,
   signOut as firebaseSignOut,
 } from "firebase/auth";
 import { doc, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { auth, db, GoogleAuthProvider } from "@/lib/firebase";
+import { toast } from "@/hooks/use-toast";
 
 export type UserRole = "user" | "admin";
 
@@ -34,10 +34,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getRedirectResult(auth).catch(() => {
-      // User may have cancelled or error; ignore, onAuthStateChanged will handle state
-    });
-
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser ?? null);
       if (!firebaseUser) {
@@ -76,9 +72,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signInWithGoogle = async () => {
-    const provider = new GoogleAuthProvider();
-    await signInWithRedirect(auth, provider);
-    // Page redirects to Google; after sign-in, user is redirected back and getRedirectResult runs
+    try {
+      setLoading(true);
+      const provider = new GoogleAuthProvider();
+      // Use popup instead of redirect to avoid page refreshes and keep console logs
+      await signInWithPopup(auth, provider);
+    } catch (error: any) {
+      console.error("Auth: Google sign-in failed", error);
+      // Don't throw the error, just log it so the page doesn't crash or refresh
+      toast({
+        title: "Sign-in failed",
+        description: error.message || "Unknown error",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const signOut = async () => {

@@ -2,16 +2,17 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from routers import locations, camera, upload
 from routers.rtsp_camera import router as rtsp_router
+from routers.threat_analysis import router as threat_router
 import asyncio
 from services.video_processor import video_processor
 from fastapi import WebSocket, WebSocketDisconnect
 
-app = FastAPI(title="Crowdex Backend", version="1.0.0")
+app = FastAPI(title="Crowdex Backend", version="2.0.0")
 
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Allow all for hackathon
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -20,8 +21,9 @@ app.add_middleware(
 # Include Routers
 app.include_router(locations.router)
 app.include_router(upload.router)
-app.include_router(camera.router) # Camera router has /ws/camera/* paths defined directly
-app.include_router(rtsp_router)  # RTSP/Public CCTV camera router
+app.include_router(camera.router)
+app.include_router(rtsp_router)
+app.include_router(threat_router)  # Threat Analysis (Fight/Bomb/Accident detection)
 
 @app.get("/")
 def read_root():
