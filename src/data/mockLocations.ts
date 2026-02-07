@@ -132,7 +132,7 @@ function generateCrowdCount(capacity: number, type: Location['type'], locationId
   // Unique characteristic per location (some are consistently more popular than others of same type)
   const popularityBias = 0.8 + ((idNum * 37) % 40) / 100; // 0.8 to 1.2
 
-  let count = Math.floor(capacity * (timeMultiplier + minuteVariation + secondNoise) * popularityBias);
+  const count = Math.floor(capacity * (timeMultiplier + minuteVariation + secondNoise) * popularityBias);
   return Math.max(0, Math.min(capacity, count));
 }
 
@@ -272,7 +272,7 @@ export const chennaiLocations: Location[] = baseLocations.map(loc => {
   let currentCount = generateCrowdCount(loc.capacity, loc.type, loc.id);
 
   // Force high crowd for specific demo locations
-  if ((loc as any).forceHigh) {
+  if ('forceHigh' in loc && loc.forceHigh) {
     currentCount = Math.floor(loc.capacity * 0.95); // 95% full
   }
 

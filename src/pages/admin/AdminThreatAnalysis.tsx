@@ -44,16 +44,40 @@ const threatTypeConfig = {
     icon: Swords,
     label: 'Fight Detection',
     description: 'Violence & aggression detection using temporal action recognition',
+    theme: {
+      primary: 'text-red-500',
+      secondary: 'bg-red-500/10',
+      border: 'border-red-500/20',
+      bg: 'bg-red-500',
+      muted: 'text-red-500/70',
+      badge: 'red'
+    }
   },
   abandoned_object: {
     icon: Package,
     label: 'Abandoned Object',
-    description: 'Unattended baggage/IED detection with object tracking',
+    description: 'Unattended baggage detection with object tracking',
+    theme: {
+      primary: 'text-blue-500',
+      secondary: 'bg-blue-500/10',
+      border: 'border-blue-500/20',
+      bg: 'bg-blue-500',
+      muted: 'text-blue-500/70',
+      badge: 'blue'
+    }
   },
   accident: {
     icon: HeartPulse,
     label: 'Medical Emergency',
     description: 'Prone human detection for 108 Emergency Services',
+    theme: {
+      primary: 'text-emerald-500',
+      secondary: 'bg-emerald-500/10',
+      border: 'border-emerald-500/20',
+      bg: 'bg-emerald-500',
+      muted: 'text-emerald-500/70',
+      badge: 'emerald'
+    }
   },
 };
 
@@ -69,7 +93,6 @@ export default function AdminThreatAnalysis() {
   });
   const [analysisId, setAnalysisId] = useState<string | null>(null);
   const [alerts, setAlerts] = useState<ThreatAlert[]>([]);
-  const [selectedThreats, setSelectedThreats] = useState<ThreatType[]>(['fight', 'abandoned_object', 'accident']);
 
   const wsRef = useRef<WebSocket | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -90,13 +113,7 @@ export default function AdminThreatAnalysis() {
     }
   };
 
-  const toggleThreatType = (type: ThreatType) => {
-    setSelectedThreats(prev =>
-      prev.includes(type)
-        ? prev.filter(t => t !== type)
-        : [...prev, type]
-    );
-  };
+
 
   const startAnalysis = async (source: 'youtube' | 'upload', file?: File) => {
     if (source === 'youtube' && !youtubeUrl) return;
@@ -114,7 +131,7 @@ export default function AdminThreatAnalysis() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             youtube_url: youtubeUrl,
-            threat_types: selectedThreats,
+            threat_types: [activeTab],
             frame_skip: 15,
             testing_mode: testingMode
           }),
@@ -123,7 +140,7 @@ export default function AdminThreatAnalysis() {
         const formData = new FormData();
         formData.append('file', file!);
 
-        response = await fetch(`${API_BASE_URL}/threat/analyze?threat_types=${selectedThreats.join(',')}&testing_mode=${testingMode}`, {
+        response = await fetch(`${API_BASE_URL}/threat/analyze?threat_types=${activeTab}&testing_mode=${testingMode}`, {
           method: 'POST',
           body: formData,
         });
@@ -228,11 +245,14 @@ export default function AdminThreatAnalysis() {
           return (
             <button
               key={type}
-              onClick={() => setActiveTab(type)}
+              onClick={() => {
+                setActiveTab(type);
+                resetAnalysis();
+              }}
               className={cn(
                 "flex items-center gap-2 px-4 py-2.5 rounded-full text-sm font-medium transition-all duration-200",
                 isActive
-                  ? "bg-primary text-primary-foreground"
+                  ? `${cfg.theme.bg} text-white`
                   : "bg-secondary text-muted-foreground hover:text-foreground hover:bg-secondary/80"
               )}
             >
@@ -248,17 +268,12 @@ export default function AdminThreatAnalysis() {
         {/* Analysis Panel */}
         <div className="lg:col-span-2 space-y-6">
           {/* Info Card */}
-          <Card>
+          <Card className={cn("overflow-hidden border-l-4", config.theme.border)}>
             <CardContent className="p-5">
               <div className="flex items-start gap-4">
-                {(() => {
-                  const Icon = config.icon;
-                  return (
-                    <div className="w-10 h-10 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
-                      <Icon className="w-5 h-5 text-foreground" />
-                    </div>
-                  );
-                })()}
+                <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0", config.theme.secondary)}>
+                  <config.icon className={cn("w-5 h-5", config.theme.primary)} />
+                </div>
                 <div>
                   <h3 className="font-medium">{config.label}</h3>
                   <p className="text-sm text-muted-foreground mt-1">{config.description}</p>
@@ -275,46 +290,27 @@ export default function AdminThreatAnalysis() {
             >
               <Card>
                 <CardContent className="p-6 space-y-6">
-                  {/* Detection Types */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <label className="text-sm font-medium">Detection Types</label>
-                      <div className="flex items-center gap-2">
-                        <Switch
-                          id="test-mode"
-                          checked={testingMode}
-                          onCheckedChange={setTestingMode}
-                        />
-                        <Label htmlFor="test-mode" className="text-sm text-muted-foreground">
-                          Test Mode
-                        </Label>
-                      </div>
+                  {/* Mode Toggle only */}
+                  <div className="flex items-center justify-between pb-2 border-b">
+                    <div className="flex items-center gap-2">
+                      <div className={cn("w-2 h-2 rounded-full", activeTab === 'fight' ? 'bg-red-500' : activeTab === 'accident' ? 'bg-emerald-500' : 'bg-blue-500')} />
+                      <span className="text-sm font-medium">Analyzing: {config.label}</span>
                     </div>
-                    <div className="flex flex-wrap gap-2">
-                      {(Object.keys(threatTypeConfig) as ThreatType[]).map((t) => {
-                        const ThreatIcon = threatTypeConfig[t].icon;
-                        return (
-                          <button
-                            key={t}
-                            onClick={() => toggleThreatType(t)}
-                            className={cn(
-                              "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all",
-                              selectedThreats.includes(t)
-                                ? "bg-primary text-primary-foreground"
-                                : "bg-secondary text-muted-foreground hover:text-foreground"
-                            )}
-                          >
-                            <ThreatIcon className="w-4 h-4" />
-                            {threatTypeConfig[t].label.split(' ')[0]}
-                          </button>
-                        );
-                      })}
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        id="test-mode"
+                        checked={testingMode}
+                        onCheckedChange={setTestingMode}
+                      />
+                      <Label htmlFor="test-mode" className="text-sm text-muted-foreground">
+                        Test Mode
+                      </Label>
                     </div>
                   </div>
 
                   {/* YouTube URL Input */}
-                  <div>
-                    <label className="text-sm font-medium mb-2 block">YouTube Video URL</label>
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium block">YouTube Video URL</label>
                     <div className="flex gap-3">
                       <div className="relative flex-1">
                         <Youtube className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -325,9 +321,13 @@ export default function AdminThreatAnalysis() {
                           className="pl-10"
                         />
                       </div>
-                      <Button onClick={() => startAnalysis('youtube')} disabled={!youtubeUrl}>
-                        <Play className="w-4 h-4 mr-2" />
-                        Analyze
+                      <Button
+                        onClick={() => startAnalysis('youtube')}
+                        disabled={!youtubeUrl}
+                        className={cn("transition-colors", config.theme.bg)}
+                      >
+                        <Play className="w-4 h-4 mr-2 text-white" />
+                        <span className="text-white">Analyze</span>
                       </Button>
                     </div>
                   </div>
@@ -335,7 +335,7 @@ export default function AdminThreatAnalysis() {
                   {/* Divider */}
                   <div className="flex items-center gap-4">
                     <div className="flex-1 h-px bg-border" />
-                    <span className="text-xs text-muted-foreground uppercase tracking-wider">or</span>
+                    <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">OR</span>
                     <div className="flex-1 h-px bg-border" />
                   </div>
 
@@ -350,11 +350,11 @@ export default function AdminThreatAnalysis() {
                     />
                     <Button
                       variant="outline"
-                      className="w-full h-12"
+                      className={cn("w-full h-12 border-dashed border-2 hover:bg-secondary transition-all")}
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload Video File
+                      <Upload className={cn("w-4 h-4 mr-2", config.theme.primary)} />
+                      Upload Video for {config.label}
                     </Button>
                   </div>
                 </CardContent>
@@ -368,10 +368,10 @@ export default function AdminThreatAnalysis() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              <Card>
+              <Card className="overflow-hidden border-t-4" style={{ borderColor: 'var(--primary)' }}>
                 <CardContent className="p-6 space-y-6">
                   {/* Preview */}
-                  <div className="aspect-video bg-secondary rounded-xl overflow-hidden">
+                  <div className="aspect-video bg-secondary rounded-xl overflow-hidden relative border shadow-inner">
                     {analysisState.preview_frame ? (
                       <img
                         src={`data:image/jpeg;base64,${analysisState.preview_frame}`}
@@ -381,48 +381,54 @@ export default function AdminThreatAnalysis() {
                     ) : (
                       <div className="flex items-center justify-center h-full">
                         <div className="text-center">
-                          <ShieldAlert className="w-12 h-12 text-muted-foreground animate-pulse mx-auto" />
-                          <p className="text-sm text-muted-foreground mt-3">
-                            {analysisState.status === 'downloading' ? 'Downloading video...' : 'Initializing analysis...'}
+                          <ShieldAlert className={cn("w-12 h-12 animate-pulse mx-auto", config.theme.primary)} />
+                          <p className="text-sm text-muted-foreground mt-3 font-medium">
+                            {analysisState.status === 'downloading' ? 'Downloading video...' : 'AI Engine Initializing...'}
                           </p>
                         </div>
                       </div>
                     )}
+                    <div className="absolute top-4 left-4">
+                      <Badge className={cn("px-3 py-1 text-white border-0 shadow-lg", config.theme.bg)}>
+                        LIVE Analysis
+                      </Badge>
+                    </div>
                   </div>
 
                   {/* Progress */}
                   <div className="space-y-3">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">
-                        {analysisState.status === 'downloading' ? 'Downloading...' : 'Analyzing...'}
+                    <div className="flex justify-between text-sm items-center">
+                      <span className="text-muted-foreground font-medium flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                        {analysisState.status === 'downloading' ? 'Retreiving Stream...' : `Detecting ${config.label.split(' ')[0]}s...`}
                       </span>
-                      <span className="font-medium tabular-nums">{analysisState.progress}%</span>
+                      <span className="font-bold tabular-nums text-primary">{analysisState.progress}%</span>
                     </div>
-                    <Progress value={analysisState.progress} className="h-2" />
+                    <Progress value={analysisState.progress} className="h-2.5" />
                   </div>
 
                   {/* Live Stats */}
                   <div className="grid grid-cols-3 gap-4">
-                    <div className="bg-secondary rounded-xl p-4 text-center">
-                      <AlertTriangle className="w-5 h-5 text-foreground mx-auto mb-2" />
-                      <p className="text-xl font-semibold tabular-nums">{analysisState.current_alerts}</p>
-                      <p className="text-xs text-muted-foreground">Alerts</p>
+                    <div className={cn("rounded-xl p-4 text-center border transition-all", config.theme.secondary, config.theme.border)}>
+                      <AlertTriangle className={cn("w-5 h-5 mx-auto mb-2", config.theme.primary)} />
+                      <p className="text-xl font-bold tabular-nums">{analysisState.current_alerts}</p>
+                      <p className="text-xs font-semibold opacity-70">Alerts</p>
                     </div>
-                    <div className="bg-secondary rounded-xl p-4 text-center">
+                    <div className="bg-secondary rounded-xl p-4 text-center border">
                       <Eye className="w-5 h-5 text-foreground mx-auto mb-2" />
-                      <p className="text-xl font-semibold tabular-nums">{analysisState.recent_events.length}</p>
-                      <p className="text-xs text-muted-foreground">Events</p>
+                      <p className="text-xl font-bold tabular-nums">{analysisState.recent_events.length}</p>
+                      <p className="text-xs text-muted-foreground font-semibold">Events</p>
                     </div>
-                    <div className="bg-secondary rounded-xl p-4 text-center">
+                    <div className="bg-secondary rounded-xl p-4 text-center border">
                       <Clock className="w-5 h-5 text-foreground mx-auto mb-2" />
-                      <p className="text-xl font-semibold tabular-nums">{analysisState.progress}%</p>
-                      <p className="text-xs text-muted-foreground">Progress</p>
+                      <p className="text-xl font-bold tabular-nums">{analysisState.progress}%</p>
+                      <p className="text-xs text-muted-foreground font-semibold">Progress</p>
                     </div>
                   </div>
 
-                  <Button variant="outline" onClick={resetAnalysis} className="w-full">
+                  <Button variant="outline" onClick={resetAnalysis} className="w-full hover:bg-destructive hover:text-destructive-foreground transition-all">
                     <Square className="w-4 h-4 mr-2" />
-                    Cancel Analysis
+                    Terminate Analysis
                   </Button>
                 </CardContent>
               </Card>
@@ -435,22 +441,25 @@ export default function AdminThreatAnalysis() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
             >
-              <Card>
+              <Card className="bg-secondary/30 border-2 border-dashed">
                 <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle2 className="w-8 h-8 text-foreground" />
+                  <div className={cn("w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 shadow-inner", config.theme.secondary)}>
+                    <CheckCircle2 className={cn("w-8 h-8", config.theme.primary)} />
                   </div>
-                  <h3 className="text-xl font-semibold mb-2">Analysis Complete</h3>
-                  <p className="text-muted-foreground mb-6">
-                    Processed in {analysisState.processing_time?.toFixed(1)}s
+                  <h3 className="text-xl font-bold mb-2">Analysis Complete</h3>
+                  <p className="text-muted-foreground mb-6 font-medium">
+                    Session Duration: {analysisState.processing_time?.toFixed(1)}s
                   </p>
-                  <div className="inline-flex flex-col items-center bg-secondary rounded-2xl px-8 py-4 mb-6">
-                    <p className="text-3xl font-bold tabular-nums">{analysisState.total_alerts || 0}</p>
-                    <p className="text-sm text-muted-foreground">Threats Detected</p>
+                  <div className={cn("inline-flex flex-col items-center rounded-2xl px-10 py-6 mb-8 shadow-sm border", config.theme.secondary, config.theme.border)}>
+                    <p className={cn("text-4xl font-extrabold tabular-nums", config.theme.primary)}>{analysisState.total_alerts || 0}</p>
+                    <p className="text-sm font-bold opacity-70 uppercase tracking-widest mt-1">Validated Threats</p>
                   </div>
-                  <div>
-                    <Button onClick={resetAnalysis} size="lg">
-                      New Analysis
+                  <div className="flex gap-3 justify-center">
+                    <Button variant="outline" onClick={() => window.location.reload()} size="lg">
+                      View Report
+                    </Button>
+                    <Button onClick={resetAnalysis} size="lg" className={config.theme.bg}>
+                      <span className="text-white">New Analysis</span>
                     </Button>
                   </div>
                 </CardContent>
@@ -484,23 +493,23 @@ export default function AdminThreatAnalysis() {
 
         {/* Alerts Sidebar */}
         <div className="space-y-4">
-          <Card>
-            <CardHeader className="pb-3">
+          <Card className="overflow-hidden border-t-4" style={{ borderColor: 'var(--primary)' }}>
+            <CardHeader className="pb-3 bg-secondary/20">
               <div className="flex items-center justify-between">
-                <CardTitle className="text-base font-medium">Recent Alerts</CardTitle>
-                <Badge variant="secondary" className="rounded-full px-2.5">
+                <CardTitle className="text-base font-bold">Session Analytics</CardTitle>
+                <Badge variant="secondary" className={cn("rounded-full px-3 py-1 font-bold", config.theme.bg, "text-white")}>
                   {alerts.length}
                 </Badge>
               </div>
             </CardHeader>
-            <CardContent className="pt-0">
-              <div className="space-y-3 max-h-[500px] overflow-y-auto">
+            <CardContent className="pt-4">
+              <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
                 {alerts.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="w-12 h-12 rounded-full bg-secondary flex items-center justify-center mx-auto mb-3">
-                      <ShieldAlert className="w-6 h-6 text-muted-foreground" />
+                  <div className="text-center py-16 opacity-50">
+                    <div className="w-16 h-16 rounded-full bg-secondary flex items-center justify-center mx-auto mb-4">
+                      <ShieldAlert className="w-8 h-8 text-muted-foreground" />
                     </div>
-                    <p className="text-sm text-muted-foreground">No alerts for this type</p>
+                    <p className="text-sm font-bold text-muted-foreground uppercase tracking-widest">No threats in stream</p>
                   </div>
                 ) : (
                   alerts.map((alert) => (
@@ -508,30 +517,48 @@ export default function AdminThreatAnalysis() {
                       key={alert.id}
                       initial={{ opacity: 0, x: 10 }}
                       animate={{ opacity: 1, x: 0 }}
-                      className="p-3 bg-secondary rounded-xl"
+                      className={cn("p-4 rounded-2xl border transition-all hover:shadow-md", config.theme.secondary, config.theme.border)}
                     >
-                      <div className="flex items-start gap-3">
+                      <div className="flex items-start gap-4">
                         {alert.screenshot_b64 && (
-                          <img
-                            src={`data:image/jpeg;base64,${alert.screenshot_b64}`}
-                            alt="Alert"
-                            className="w-14 h-10 rounded-lg object-cover flex-shrink-0"
-                          />
+                          <div className="relative group flex-shrink-0">
+                            <img
+                              src={`data:image/jpeg;base64,${alert.screenshot_b64}`}
+                              alt="Alert"
+                              className="w-20 h-16 rounded-xl object-cover border-2 border-white shadow-sm"
+                            />
+                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity rounded-xl flex items-center justify-center">
+                              <Eye className="w-4 h-4 text-white" />
+                            </div>
+                          </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center justify-between mb-1.5">
                             <Badge
-                              variant={alert.status === 'pending' ? 'destructive' : 'secondary'}
-                              className="text-xs rounded-full"
+                              className={cn("px-2 py-0.5 text-[10px] font-black rounded-full uppercase text-white border-0", config.theme.bg)}
                             >
-                              {(alert.confidence * 100).toFixed(0)}%
+                              {(alert.confidence * 100).toFixed(0)}% Match
                             </Badge>
-                            <span className="text-xs text-muted-foreground truncate">
-                              {alert.location}
+                            <span className="text-[10px] font-bold text-muted-foreground uppercase">
+                              {new Date(alert.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           </div>
-                          <p className="text-xs text-muted-foreground mt-1.5">
-                            {new Date(alert.created_at).toLocaleTimeString()}
+                          <div className="flex items-center gap-1.5 text-xs font-bold truncate">
+                            {activeTab === 'abandoned_object' ? (
+                              <>
+                                <Package className={cn("w-3.5 h-3.5", config.theme.primary)} />
+                                <span className={config.theme.primary}>{alert.location || 'Current Position'}</span>
+                              </>
+                            ) : (
+                              <>
+                                <AlertTriangle className={cn("w-3.5 h-3.5", config.theme.primary)} />
+                                <span>{alert.location || 'Camera 01'}</span>
+                              </>
+                            )}
+                          </div>
+                          <p className="text-[10px] text-muted-foreground mt-2 flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            Detected via Temporal Analysis
                           </p>
                         </div>
                       </div>
